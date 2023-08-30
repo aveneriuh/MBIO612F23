@@ -8,7 +8,7 @@
 
 ```{r}
 # Add your photo here
-
+![Concept Diagram](./concept_diagram.png)
 ```
 
 #### Question 1
