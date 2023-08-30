@@ -89,7 +89,7 @@ Hint: Use the `?` symbol to invoke the matrix documentation
 data(airquality)
 head(airquality)
 
-sort_order <- order(x=airquality, )
+
 ```
 
 #### Question 4

@@ -18,7 +18,7 @@ output: pdf_document
 We can discuss your solution next week. However, you are welcome to attach an image here if you wish. The following syntax can be used to include an image in a Jupyter or notebook:
 
 ```{r}
-![Concept Diagram](/Users/aveneri/Desktop/School/MBIO 612/Concept_Diagram.png)
+![Concept Diagram](./Concept_Diagram.png)
 ```
 
 R users can, if they wish, include the URL where their image can be found.
