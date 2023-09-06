@@ -1,0 +1,168 @@
+---
+title: "R Notebook"
+output: html_notebook
+editor_options: 
+  chunk_output_type: inline
+---
+
+data_df <- read.csv("your_data_file.csv")
+
+
+How many lines does the data frame contain?
+
+```{r}
+water_chemistry <- read.csv("water_chemistry.csv")
+nrow(water_chemistry)
+```
+
+How many columns does the data frame contain?
+
+```{r}
+ncol(water_chemistry)
+```
+
+
+How many non-NA values does the column PO43- (µM) contain?
+
+```{r}
+
+```
+
+How many values are greater than 0.10 in column NO3- & NO2- (µM)?
+
+```{r}
+sum(water_chemistry$NO3_NO2 > 0.1, na.rm = TRUE)
+```
+
+Sort the data by column Date in ascending and on column Temp. (˚C) in descending.
+
+```{r}
+
+```
+
+How many column values are greater than 0.10 in column NO3- & NO2- (µM) and less than 25 in column Temp. (˚C)?
+
+```{r}
+sum((water_chemistry$NO3_NO2 > 0.1) & (water_chemistry$Temp < 25), na.rm = TRUE)
+```
+
+Remove rows that have NA in column NH4+ & NH3 (µM).
+
+```{r}
+is.na(water_chemistry$NH4_NH3) #see which values are NA (=TRUE)
+water_chemistry[!(is.na(water_chemistry$NH4_NH3)), ] # ! means "not", so instead of returning the values that are TRUE it will return values that are FALSE
+
+```
+
+What is the average value of column Salinity (PSU)?
+
+```{r}
+
+```
+
+What is the minimum value in column TDP (µM)?
+
+```{r}
+```
+
+What is the maximum value in column TDN (µM)?
+
+```{r}
+max(water_chemistry$TDN)
+```
+
+Create a vector containing values from column Turbidity (NTU).
+
+```{r}
+turb <- water_chemistry$Turbidity
+head(turb)
+```
+
+What is the sum of all the values in the column Chl a (µg/L)?
+
+```{r}
+sum(water_chemistry$Chl_a, na.rm = TRUE)
+```
+
+Filter rows where pH (unit) is greater than 8.
+
+```{r}
+water_chemistry[(water_chemistry$pH > 8), ]
+```
+
+Create a new column that is the ratio of TDP (µM) to TDN (µM).
+
+```{r}
+```
+
+Count how many unique values are there in Temp. (˚C).
+
+```{r}
+```
+
+Extract the first 5 rows and columns 3 to 7 into a new data frame.
+
+```{r}
+extract <- water_chemistry[seq(1,5), seq(3,7)]
+extract
+```
+
+Convert the column Salinity (PSU) to a numeric vector.
+
+```{r}
+```
+
+Create a matrix with columns PO43- (µM), NO3- & NO2- (µM) and NH4+ & NH3 (µM).
+
+```{r}
+```
+
+What is the median of the column DO (ppm)?
+
+```{r}
+```
+
+Replace NA values in column Turbidity (NTU) with the mean of the column.
+
+```{r}
+```
+How many unique dates are in the dataset?
+
+```{r}
+```
+
+Create a new data frame containing only columns related to Nitrogen (NO3- & NO2- (µM), NH4+ & NH3 (µM) and TDN (µM)).
+
+```{r}
+```
+
+How many rows have Salinity (PSU) greater than 35?
+
+```{r}
+```
+
+What is the standard deviation of column pH (unit)?
+
+```{r}
+```
+
+Convert the data frame to a matrix and store it in a variable.
+```{r}
+```
+
+
+Find the date associated with the highest Chl a (µg/L) value.
+
+```{r}
+
+```
+
+Find the top 3 lowest Temp. (˚C) values and their corresponding Date.
+
+```{r}
+temp_increasing <- water_chemistry[order(water_chemistry$Temp), ]
+temp_increasing[seq(1,3), "M_D_Y"]
+```
+
+
+

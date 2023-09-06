@@ -6,10 +6,9 @@
 
 `Push`, `Repository`, `Clone`, `Pull`, `Pull Request`, `Branch`, `Merging`, `Github Client`, `README file`, `Private or Public`
 
-```{r}
-# Add your photo here
-![Concept Diagram](./concept_diagram.png)
-```
+
+![](./concept_diagram_2.png)
+
 
 #### Question 1
 
@@ -30,6 +29,7 @@
 | row_1 | 1 | 2 |
 | row_2 | 3 | 4 |
 | row_3 | 5 | 6 |
+
 
 * Note that you need to name the columns (col_1 and col_2) and name the rows (row_1, row_2, row_3)
 
@@ -38,35 +38,8 @@ Hint: Use the `?` symbol to invoke the matrix documentation
 ```{r}
 # Add your code here
 ?matrix
-
-```
-
-#### Question 1
-
-`matrix(c(1,2,3,4,5,6) , nrow = 3)`
-
-* Running the expression produces the following matrix
-
-|  |  |
-|---|---|
-| 1 | 4 |
-| 2 | 5 |
-| 3 | 6 |
-
-* How can you modify the call to `matrix()` to produce the following matrix instead?
-
-|   | col_1 |  col_2 |
-| --- |---|---|
-| row_1 | 1 | 2 |
-| row_2 | 3 | 4 |
-| row_3 | 5 | 6 |
-
-* Note that you need to name the columns (col_1 and col_2) and name the rows (row_1, row_2, row_3)
-
-Hint: Use the `?` symbol to invoke the matrix documentation
-
-```{r}
-# Write your answer here
+matrix <- matrix(c(1,2,3,4,5,6) , nrow = 3, dimnames = list(c("row_1", "row_2", "row_3"), c("col_1", "col_2")))
+matrix
 ```
 
 #### Question 2
@@ -77,6 +50,9 @@ Hint: Use the `?` symbol to invoke the matrix documentation
 
 ```{r}
 # Write your answer here
+data(airquality)
+sorteddf <- airquality[order(-airquality$Temp, -airquality$Solar.R), ] 
+head(sorteddf, n=15) #shows the first 15 lines of "airquality" data frame
 ```
 
 #### Question 3
@@ -86,10 +62,8 @@ Hint: Use the `?` symbol to invoke the matrix documentation
 
 ```{r}
 # Write your answer here
-data(airquality)
-head(airquality)
-
-
+sortedreverse <- airquality[order(airquality$Temp, -airquality$Solar.R), ]
+head(sortedreverse, n=15)
 ```
 
 #### Question 4
@@ -102,6 +76,12 @@ head(airquality)
 
 ```{r}
 # Write your answer here
+#first method:
+temp_72 <- airquality$Temp == 72 #find the values where temp = 72 (these will be TRUE) and put this in a new data frame
+airquality[temp_72, ] #select the rows in airquality data set where temp_72 is true; column parameter is empty so we can get back all the columns
+
+#second method:
+subset(airquality, Temp == 72)
 ```
 
 #### Question 6
@@ -116,9 +96,12 @@ head(airquality)
 * Find and remove all rows that are missing values for the `Solar.R` or `Ozone` variables
 * Save the cleaned data to a new data frame called airquality_no_na
   * How many lines have been removed?
+  42 lines were removed.
 
 ```{r}
 # Write your answer here
+airquality_no_na <- airquality[!is.na(airquality$Solar.R) & !is.na(airquality$Ozone), ]
+nrow(airquality) - nrow(airquality_no_na)
 ```
 
 #### Question 7
@@ -130,5 +113,19 @@ head(airquality)
 
 ```{r}
 # Write your answer here
+install.packages("dyplr")
+library("dyplr")
+avg_by_month <- airquality %>%
+  group_by(Month) %>%
+  summarize(Average_Solar = mean(Solar.R, na.rm = TRUE), Average_Ozone = mean(Ozone, na.rm = TRUE))
+```
+
+```{r}
+result_airquality <- airquality %>%
+  left_join(avg_by_month, by = "Month") %>%
+  mutate(Solar.R = ifelse(is.na(Solar.R), Average_Solar, Solar.R)) %>%
+  select(-Average_Solar) %>%
+  mutate(Ozone - ifelse(is.na(Ozone), Average_Ozone, Ozone)) %>%
+  select(-Average_Ozone)
 ```
 
