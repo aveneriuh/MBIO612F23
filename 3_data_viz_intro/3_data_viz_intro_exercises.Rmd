@@ -1,0 +1,171 @@
+**Question 1**
+
+Display the first six rows of the mpg dataset.
+
+```{r}
+library(ggplot2)
+data(mpg)
+head(mpg, n=6)
+```
+
+
+**Question 2**
+
+Use ggplot to create a scatter plot with displ on the x-axis and hwy on the y-axis.
+
+
+```{r}
+ggplot(data=mpg, mapping=aes(x=displ,y=hwy))+
+  geom_point()
+
+#to add two different groups of data
+ggplot(data=mpg, )+
+  geom_point(aes(x=displ,y=hwy))+
+  geom_point(aes(x=displ,y=cty,color='orange')) #define the color for the plot
+  
+       
+```
+
+
+
+**Question 3**
+
+Modify the previous plot to color the points by class.
+
+```{r}
+ggplot(data=mpg, )+
+  geom_point(aes(x=displ,y=hwy,color=class)) #class will color code the plot for you by class (defined in the dataset) #must be within aes() because it is variable and changes color based on the class
+
+```
+
+
+
+**Question 4**
+
+Plot displ on the x-axis and cty on the y-axis. Use geom_point() to create the scatter plot.
+
+```{r}
+ggplot(data=mpg, )+
+  geom_point(aes(x=displ,y=cty))
+```
+
+
+
+**Question 5**
+
+Add a title to the last plot and label both x and y-axes.
+
+```{r}
+ggplot(data=mpg, )+
+  geom_point(aes(x=displ,y=cty))+
+  ggtitle("Vehicle Statistics")+
+  xlab("Display")+
+  ylab("City")
+```
+
+
+**Question 6**
+
+Create a scatter plot with displ on the x-axis and hwy on the y-axis. Color the points by manufacturer.
+
+```{r}
+ggplot(data=mpg, )+
+  geom_point(aes(x=displ,y=hwy,color=manufacturer))
+```
+
+**Question 7**
+
+Create a box plot to visualize hwy miles per gallon across different class.
+
+```{r}
+ggplot(data=mpg,aes(x=class,y=hwy))+
+  geom_boxplot()+
+  labs(
+    x="Class",
+    y="MPG Highway",                   #can also label like this in ggplot
+    title="Highway MGP by Vehicle Class"
+  )
+```
+
+
+**Question 8**
+
+Create a histogram of cty (city miles per gallon).
+
+```{r}
+ggplot(data=mpg, )+
+  geom_histogram(aes(x=cty))
+```
+
+
+**Question 9**
+
+Modify the histogram to have 30 bins.
+```{r}
+ggplot(data=mpg, )+
+  geom_histogram(aes(x=cty), bins=30)
+```
+
+
+
+**Question 10**
+
+Create a plot showing the density of hwy (highway miles per gallon).
+
+```{r}
+ggplot(mpg, aes(x = hwy)) +
+  geom_density()
+```
+
+
+
+**Question 11**
+
+Create a scatter plot with cty on the x-axis and hwy on the y-axis. Add a smoothing line with the method as "lm".
+
+```{r}
+ggplot(data=mpg, aes(x=cty,y=hwy))+
+  geom_point()+
+  geom_smooth(method=lm)
+```
+
+
+
+**Question 12**
+
+Display the first six rows of the mpg dataset.
+
+```{r}
+head(mpg, n=6)
+```
+
+
+
+**Question 13**
+
+Create a bar chart to count the number of cars in each class.
+
+```{r}
+class_freq <- as.data.frame(table(mpg$class))
+class_freq
+
+ggplot(data=class_freq, aes(x=Class,y=Freqency)+
+  geom_bar(stat="identity")
+  
+
+```
+
+
+**Question 14**
+
+Create a bar chart to count the percentage of cars in each class. 
+
+```{r}
+class_freq$Percent <- (class_freq$Freq / sum(class_freq$Freq)) * 100
+class_freq
+
+colnames(class_freq) <- c("Class", "Frequency", "Percentage")
+class_freq
+
+```
+
