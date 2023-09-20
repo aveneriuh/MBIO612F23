@@ -1,0 +1,331 @@
+```{r}
+options(repos = c(CRAN = "https://cloud.r-project.org/"))
+
+# options(repr.plot.width=12, repr.plot.height=6)
+```
+
+```{r}
+# install the package GridExtra
+install.packages("gridExtra")
+```
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+```
+
+# Introduction to Probability Distributions
+
+### Introduction
+### Introduction to Probability Distributions: Binomial and Gaussian
+
+In this chapter, we aim to demystify the foundational concepts that form the backbone of probability and statistics. Our primary focus will be on probability distributions, particularly emphasizing their real-world applications and significance in data analysis. We will delve into two cornerstone distributions that are frequently encountered in statistical modeling: the Binomial and the Normal (also known as the Gaussian) distributions.
+
+### Definitions
+
+#### Experiment
+
+- An **experiment** is a well-defined procedure or random process that yields a unique outcome from a set of all possible outcomes.
+  - Examples: 
+    - Rolling a six-sided die
+    - Counting the number of empty slots in a parking stand
+    - Measuring the weight of a randomly caught fish
+    - Observing the number of corals bleached in a specific location
+
+#### Sample Space
+
+- The **sample space, \(S\)**, is the complete set of all mutually exclusive outcomes of an experiment.
+  - For a six-sided die, \(S = \{1, 2, 3, 4, 5, 6\}\)
+  - For the number of empty parking slots, \(S\) could be any integer from 0 to the total number of slots available in the parking lot.
+  - For measuring weight, \(S\) could be any real number larger than 0.
+
+#### Event
+
+- An **event, \(E\)**, is a subset of the sample space.
+  - Examples:
+    - Rolling a 4 on a die: \(E = \{4\}\)
+    - Rolling an odd number: \(E = \{1, 3, 5\}\)
+    - Observing no empty parking slots: \(E = \{0\}\)
+    - Measuring a weight between 140 and 200 kgs: \(E = [140, 200]\)
+
+#### Probability
+
+- **Probability** quantifies the uncertainty or likelihood of an event \(E\).
+  - Example questions:
+    - What are the chances of a coral bleaching event?
+    - What is the probability that a randomly caught fish will be above a certain weight?
+    - What is the probability that a given treatment will improve the survival rates?
+  
+- Formally, the probability \(p(E)\) satisfies two conditions:
+  - \(0 \leq p(E) \leq 1\)
+  - \(\sum_{s \in S} p(s) = 1\)
+
+### Long-Term Frequencies of Events
+
+- The concept of 'long-term' is pivotal in grasping the essence of probability.
+  - The term 'long-term' refers to the idea that probability models are most accurate when applied to a large number of trials or instances.
+  - For example, a 1-in-4 chance in a game doesn't ensure you will win in exactly 4, 8, or even 20 attempts. However, if you were to play this game an infinite number of times, the frequency of winning should approximate to 1-in-4.
+  - Biologists may relate to this when tracking rare events in ecosystems. For instance, a 1-in-100 chance of observing a particular marine species doesn’t mean you will certainly see it in 100 samples. But with a sufficiently large number of samples, the observation frequency should move closer to 1-in-100.
+
+- In the long run, the frequency of each outcome should converge towards its theoretical probability.
+  - This is known as the Law of Large Numbers, which states that as the number of independent trials of a random experiment increases, the sample mean approaches the expected value.
+  - Example: If you flip a fair coin repeatedly, you should observe roughly equal numbers of heads and tails given a sufficiently large number of flips. 
+    - In biological research, this could be similar to tracking the gender ratio in a specific fish population. Over a small number of samples, the ratio may appear skewed, but with more data, it should approximate the actual gender distribution.
+
+### Code Example: Coin Flipping in R
+
+- The code below is designed to simulate 10 coin flips and then calculate the cumulative sum of the outcomes.
+
+```{r}
+# Simulate 10 coin flips
+coin_flips <- sample(c(0, 1), size=10, replace=TRUE, prob=c(0.5, 0.5))
+coin_flips
+```
+
+```{r}
+# Cumulative sum of flips
+cumulative_sum <- cumsum(coin_flips)
+cumulative_sum
+```
+
+- `sample(c(0, 1), size=10, replace=TRUE, prob=c(0.5, 0.5))`:
+  - `sample()` is an R function used for random sampling.
+  - `c(0, 1)` represents the two possible outcomes: 0 for tails and 1 for heads.
+  - `size=10` specifies that 10 samples should be drawn.
+  - `replace=TRUE` indicates that sampling is done with replacement, meaning after each draw, the item is put back into the population.
+  - `prob=c(0.5, 0.5)` states that the probabilities of drawing 0 (tails) and 1 (heads) are both 0.5, making it a fair coin.
+
+- `cumulative_sum = cumsum(coin_flips)`:
+  - `cumsum()` is an R function that calculates the cumulative sum of a numeric vector.
+  - `coin_flips` is the variable holding the 10 random coin flip outcomes.
+  - `cumulative_sum` will hold the running total of `coin_flips`. 
+    - For example, if `coin_flips` is `c(1, 0, 1, 1, 0, 1, 0, 0, 1, 0)`, then `cumulative_sum` would be `c(1, 1, 2, 3, 3, 4, 4, 4, 5, 5)`.
+
+- The `cumulative_sum` can be useful for tracking the evolving ratio of heads to tails as more coin flips are simulated. For instance, dividing the `cumulative_sum` by the number of trials (in this case, from 1 to 10) would give the running average of heads flipped, which should converge to the expected 0.5 in the long run.
+
+### Probability vs. Statistics
+
+* Probability: Concerns itself with predicting the likelihood of future events.
+  * This branch of mathematics provides the tools to model uncertain phenomena and make quantitative predictions. 
+  * Probability can guide decision-making in uncertain situations. 
+* Statistics: Focuses on analyzing the frequency of past events.
+  * Statistics is concerned with the collection, analysis, interpretation, presentation, and organization of data. 
+
+### Probability Models
+* Probability Model  is a mathematical framework that formalizes our understanding of a system governed by chance. 
+  * It helps us make predictions about future outcomes based on a set of rules and assumptions.
+* Key Objectives of a Probability Model:
+  * Estimating Expected Outcomes: One primary goal is to predict the "average" or "typical" outcome over numerous trials or experiments. 
+    * For instance, a model might estimate the expected number of a particular type of fish that could be found in a designated marine area.
+  * Assessing Variability: Another important objective is to understand how outcomes can differ or vary over time. 
+    * This could involve studying how the population of fish in a particular area fluctuates throughout different seasons.
+  * Calculating Specific Probabilities: The model can also be used to calculate the probability of specific events occurring. 
+    * For example, what is the likelihood that marine scientists will observe more than 50 specimens of a particular fish species in a day?
+
+* Central to these models are `probability distributions` and `random variables`.
+
+### Introduction to Probability Distributions
+
+- Imagine a six-sided die with faces numbered from 1 to 6, but unlike a regular die, this one is loaded or biased.
+- The probabilities of rolling each number on the die are given as follows:
+    - \( p(1) = \frac{0.3}{6} \)
+    - \( p(2) = \frac{0.7}{6} \)
+    - \( p(3) = \frac{2}{6} \)
+    - \( p(4) = \frac{0.5}{6} \)
+    - \( p(5) = \frac{0.2}{6} \)
+    - \( p(6) = \frac{2.3}{6} \)
+
+- You can conceptualize the outcome probabilities as a "machine" or "mathematical function" that accepts as input a die face number $x$ from the set $\{1, 2, 3, 4, 5, 6\}$ and returns the associated probability $p(x)$.
+
+#### Properties of Probability Distributions
+
+- A probability distribution is a function that maps each event in the sample space \( S \) to a probability. The probabilities lie in the range \([0,1]\) along the y-axis.
+
+```{r}
+sample_space <- 1:6
+probs <- c(0.3/6, 0.7/6, 2/6, 0.5/6, 0.2/6, 2.3/6)
+```
+
+### Understanding Random Variables
+
+- A random variable is a variable whose value is determined by the outcome of a random experiment.
+  - The value of this variable is dictated by a probability distribution.
+
+```{r}
+roll_random_var <- sample(c(1, 2, 3, 4, 5, 6), size = 1, prob = c(0.3/6, 0.7/6, 2/6, 0.5/6, 0.2/6, 2.3/6))
+roll_random_var
+```
+
+#### Types of Random Variables
+
+* Discrete Random Variables: These have a finite or countably infinite set of outcomes.
+  * Example: The number of fish caught in a single fishing trip is a discrete random variable. 
+    * You could catch 0, 1, 2, 3, ... fish, but you can't catch 2.5 fish.
+  * Technical Note: Though generally finite, the set of outcomes can also be countably infinite. 
+    * The number of times you would have to flip a coin until it lands heads up is a countably infinite set: it could happen on the first flip, second flip, and so on indefinitely.
+
+* Continuous Random Variables: These can take any real value within a given range and have an uncountably infinite set of possible outcomes.
+  * Example: The weight of a fish caught from a specific lake is a continuous random variable. 
+    * The fish could weigh 1.2 kg, 1.21 kg, 1.2101 kg, etc., within a certain feasible range.
+
+#### The Binomial Distribution
+
+- A commonly used distribution for discrete random variables is the binomial distribution.
+- The binomial distribution is parameterized by $n$ (the number of trials, or size) and  $p$ (the probability of success in a single trial).
+
+```{r}
+# Probability of observing 4 heads in 10 coin flips with a head probability of 0.3
+dbinom(4, size=10, prob=0.3)
+```
+
+#### Probability Mass Function (PMF)
+
+- For discrete random variables, the probability distribution function is also known as the probability mass function (`pmf`).
+  - The `pmf` assigns a probability to each possible outcome in the sample space of the random variable.
+
+```{r}
+x_vals <- 0:10
+probs <- dbinom(x_vals, size=10, prob=0.3)
+probs
+```
+
+#### Parameters in Binomial Distributions
+
+- Changing the parameters $n$ and $p$ leads to different binomial distributions.
+  - For example, two different binomial distributions might have \( n_1=9, p_1=0.43 \) and \( n_2=11, p_2=0.3 \).
+
+```{r}
+x_vals_1 <- seq(0, 9, 2)
+probs_1 <- dbinom(x_vals_1, size = 9, prob = 0.43)
+probs_2 <- dbinom(x_vals_1, size = 11, prob = 0.3)
+
+plt_1 <- ggplot() +
+  geom_bar(aes(x = x_vals_1, y = probs_1), stat = "identity", alpha = 0.2, fill = "blue") +
+  theme(axis.title.x = element_text(size = 18), axis.title.y = element_text(size = 18)) +
+  scale_x_continuous(breaks = 0: 10, labels = 0: 10)
+
+plt_2 <- ggplot() +
+  geom_bar(aes(x = x_vals_1, y = probs_2), stat = "identity", alpha = 0.2, fill = "red") +
+  theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 18)) +
+  scale_x_continuous(breaks = 0: 10, labels = 0: 10)
+```
+
+```{r}
+grid.arrange(plt_1, plt_2, ncol=2)
+```
+
+### Summarizing the Concepts
+
+- In summary, a binomial distribution can be represented as $X \sim \text{Binomial}(n, p)$, where:
+  - $X$ is the random variable representing the number of successes.
+  - $n$ and $p$ are the parameters defining the number of trials and the probability of success, respectively.
+  - The sample space for $X$ ranges from $0$ to $n$.
+
+### Introduction to Normal Distribution
+
+- The Normal Distribution, also known as the Gaussian Distribution, is a type of continuous probability distribution. 
+  * This means that its possible values form a continuous range, rather than a discrete set.
+
+- This distribution is crucial in the field of statistics and data science for modeling various real-world phenomena.
+  - Examples of phenomena often modeled by a normal distribution include:
+    - Heights of individuals within a given population
+    - Scores on standardized tests
+    - Measurement errors in scientific experiments
+
+```{r}
+
+# Defining a sequence of x-values
+x_vals = seq(-3, 3, 0.05)
+x_vals
+```
+
+- Many statistical methods make the assumption that data follow a normal distribution, making this distribution a foundational concept in statistics and data science.
+
+### Key Parameters of the Normal Distribution
+
+- A normal distribution is characterized by two key parameters: the mean ($\mu$) and the standard deviation ($\sigma$).
+  - $\mu$: This parameter represents the mean or the "center" of the distribution.
+  - $\sigma$: This parameter represents the standard deviation, which quantifies the "spread" or "width" of the distribution.
+  
+- Mathematically, if a random variable $X$ follows a normal distribution with mean $\mu$ and standard deviation $\sigma$ , it is denoted as:
+  
+$$
+X \sim \mathcal{N} (\mu,\sigma)
+$$
+
+- Probability Density Function (pdf) for a Normal Distribution:
+  - For a random variable $X$ that follows a normal distribution with parameters $\mu$ and $\sigma$, the pdf is given by:
+
+\[
+p(x) = \frac{1}{\sqrt{2\pi\sigma^2}} e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+\]
+
+```{r}
+# Plotting the normal distribution
+x_vals <- seq(-3, 3, 0.05)
+probs <- dnorm(x_vals, mean = 0, sd = 1)
+
+ggplot() +
+  geom_line(aes(x = x_vals, y = probs), linewidth = 3) +
+  theme(axis.title.x = element_text(size = 24), axis.title.y = element_text(size = 24)) +
+  theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 18))
+```
+
+* Intuition: Consider the pdf as your cheat sheet for anticipating which numbers are likely to appear when you take a sample. The curve serves as a "likelihood meter," revealing the odds of encountering different outcomes along the sample space (x-axis). Near the mean (average), you'll find a higher concentration of data points; it's where you're most likely to land when sampling. As you drift away from the mean, the curve dips, signifying that those values are less likely to appear in your population.
+  
+### Probability Density Function (pdf) vs. Probability Mass Function (pmf)
+
+- While both pdf and pmf serve to define distributions, they are used in different contexts.
+  - The pdf is used for continuous random variables, like the normal distribution.
+  - The pmf is used for discrete random variables.
+
+- Unlike a pmf, where the height of the bar represents the probability of each outcome, the pdf gives you the density of the distribution around a particular point.
+  - For example, in a standard normal distribution (\( \mu = 0, \sigma = 1 \)), the density around \( x = 0 \) is much higher compared to \( x = -2.5 \).
+
+```{r}
+# Plotting multiple normal distributions to compare
+x_vals <- seq(-8, 12, 0.05)
+probs_1 <- dnorm(x_vals, mean = 0, sd = 1)
+probs_2 <- dnorm(x_vals, mean = 2, sd = 3)
+ggplot() +
+  geom_line(aes(x = x_vals, y = probs_1, color = "red"), size = 2) +
+  geom_line(aes(x = x_vals, y = probs_2, color = "blue"), size = 2) +
+  xlim(-12, 12) +
+  theme(axis.title.x = element_text(size = 24), axis.title.y = element_text(size = 24)) +
+  theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 18)) +
+  scale_color_manual(labels = c("(1, 2.3)", "(0, 1)"), values = c("blue", "red"))
+```
+
+### Data and Sampling in the Gaussian Distribution
+
+- In a normally-distributed dataset, the highest density of data points will be concentrated around the mean ($\mu$).
+  - In practice, this implies that when you sample from a normal distribution, the majority of the sampled data points are likely to be close to the mean.
+  
+    ![Density and Spread in Gaussian Distribution](gaussian_and_var.png)
+    
+### Understanding Density through Sampling
+
+- One way to understand the concept of density in a normal distribution is through sampling.
+  - For instance, when you sample 1000 data points from a standard normal distribution $\mathcal{N}(\mu=0, \sigma=1)$, most of these data points will be found close to the mean, which is 0 in this case.
+
+```{r}
+# Generating a single random number from a standard normal distribution
+rnorm(1, mean=0, sd=1)
+```
+
+```{r}
+# Sampling 5000 data points from a standard normal distribution
+gaussian_samples = rnorm(5000, mean=0, sd=1)
+head(gaussian_samples, 10)  # Displaying the first 10 samples
+```
+
+```{r}
+# Creating a histogram of the sampled data points
+ggplot() +
+  geom_histogram(aes(x = gaussian_samples, y = after_stat(count / sum(count))), bins = 20, alpha = 0.4, fill = "blue", color = "black")
+```
+
+This concludes the chapter on Normal Distribution, where we explored its fundamental properties, its relevance in real-world phenomena, and its key mathematical foundations. We also contrasted the probability density function (pdf) with the probability mass function (pmf) and delved into the concept of density and sampling. With this understanding, you are better equipped to tackle statistical problems that assume or require a normal diexperience_prob_distributions.Rmdstribution.
+
+
+

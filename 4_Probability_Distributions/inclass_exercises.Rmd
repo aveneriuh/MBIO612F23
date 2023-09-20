@@ -1,0 +1,175 @@
+---
+title: "In Class Exercises: Probability Distribution"
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r}
+library(ggplot2)
+```
+
+
+### Understanding Coral Health
+
+0. You go on an expedition to sample 10 fish, each of which can either be sick (due to some parasite) or healthy. What is a possible outcome of this experiment? What is the sample space?
+
+```{r}
+#The possible outcome is a ratio of 0-10 fish are sick or healthy. We don't have a probability of infection so we can't make an estimate. Sample space = 10
+(H,D,H,H,H,H,H,D,H,H)
+(1,2,3,4,5,6,7,8,9,10)
+```
+
+
+1. Your colleagues observe that there are 19 times more healthy fish than diseased ones. What is the probability of observing a healthy fish and a diseased one?
+
+```{r}
+#1 out of 20 will be sick. So probability is 0.05
+p_sick = 1/20
+#19 out of 20 will be healthy. So probability is 0.95
+p_healthy = 19/20
+
+```
+
+2. Write code in R to simulate a possible outcome of such an experiment.
+
+```{r}
+#sick
+rbinom(1, 10, 0.05) #1 experiment,  sample size of 10, with 5% probability of being sick
+
+#healthy
+rbinom(1, 10, 0.95)
+```
+
+3. What is the probability of observing a site with 5 diseased fish and 5 healthy ones?
+
+```{r}
+prob_5_5 <- dbinom(5, 10, 1/20) #what is the probability that 5 fish will be sick out of 10?
+prob_5_5
+#probability of observing the 5 sick and 5 healthy out of 10 fish is EXTREMELY low, alomst impossible.
+```
+
+
+4. Plot the probability distribution of this experiment.
+
+```{r}
+x <- 0:10 #sample space
+x
+y <- dbinom(x, 10, 1/20) #probability of each potential observation
+y
+
+df <- data.frame(x, y)
+
+ggplot(df, aes(x, y))+
+  geom_bar(stat="identity")
+```
+
+5. Based on the plot, what is the most likely outcome? Compute the event's probability.
+
+```{r}
+#Based on the plot, the most likely outcome is 0 sick.
+dbinom(0, 10, 1/20)
+```
+
+6. Provide an example from your discipline where the binomial distribution applies. Identify the experiment, event, sample space, \( p \), \( n \), etc.
+
+```{r}
+# Add your answer here
+
+```
+
+### Understanding Atlantic Cod Length Distribution
+
+1. You select 10 fish from the ocean and measure their lengths. What is a possible set of 10 lengths you should expect?
+
+```{r}
+# Solution
+
+```
+
+2. Write code in R to simulate a possible outcome of such an experiment.
+
+    ```{r}
+    # Solution
+    ```
+
+3. What are the probabilities of observing a fish with lengths 83, 105, and 115?
+
+    ```{r}
+    # Solution
+    ```
+
+```{r}
+```
+
+4. Plot the probability distribution for this experiment.
+
+```{r}
+```
+
+```{r}
+```
+
+5. Based on the plot, what is the most likely fish size? Compute the event's probability.
+
+    ```{r}
+    ```
+
+6. Provide an example from your discipline where the Gaussian distribution applies. Identify the experiment, event, sample space, putative mean, and sigma, etc.
+
+    ```{r}
+    ```
+
+
+
+### Studying Marine Ecosystems
+
+0. You observe a particular region of the ocean for 30 minutes to count the number of jellyfish passing by. What is a possible outcome of this experiment? What is the sample space?
+
+    ```{r}
+    ```
+
+1. Write code in R to simulate a possible outcome of such an experiment.
+
+    ```{r}
+    # Solution
+    ```
+
+2. Historically, colleagues who have ovserved the same site in the past reported an average of 10 jellyfish observed in a 30-minute interval. What is the 
+probability of observing exactly 12 jellyfish?
+
+    ```{r}
+    # Solution
+    ```
+
+
+3. What is the probability of observing fewer than 5 jellyfish in a 30-minute interval?
+
+```{r}
+    # Solution
+```
+
+
+
+
+    ```{r}
+    # Solution
+    ```
+
+4. Plot the probability distribution for this experiment.
+
+
+
+```{r}
+```
+
+5. Based on the plot, what is the most likely outcome? Compute the event's probability.
+
+    ```{r}
+    # Solution
+    ```
+
+6. Provide an example from your discipline where the Poisson distribution applies. Identify the experiment, event, sample space, \( \lambda \), etc.
+
+    ```{r}
+    ```
+

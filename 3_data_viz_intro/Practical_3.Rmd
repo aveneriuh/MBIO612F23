@@ -1,0 +1,172 @@
+**Question 1**
+
+* Provide at least two methods to view the number of rows and the number of columns in the `mpg` dataset.
+
+```{r}
+# Write your code here
+library(ggplot2)
+data(mpg)
+
+nrow(mpg)
+ncol(mpg)
+
+#without using nrow or ncol
+head(mpg)
+
+View(mpg) #shows number of rows and columns in view
+
+dim(mpg)
+```
+
+**Question 2**
+
+* Execute the following code:
+
+    ```R
+    ggplot(data = mpg) + 
+      geom_point(mapping = aes(x = displ, y = hwy, color = "blue"))
+    ```
+
+* Identify the issue with the code.
+* Correct it so that the plot displays as intended.
+
+```{r}
+# Write your code here
+ggplot(data = mpg) + 
+      geom_point(mapping = aes(x = displ, y = hwy), color="blue")
+#color should be outside of the aes because it is not a variable color, it is all the same color
+```
+
+**Question 3**
+
+Create a `facet grid` to explore how the relationships between `displ` and `hwy` differ among vehicle classes and drive configurations.
+
+To create the facet grid, use the `facet_grid()` function in ggplot2. 
+The tilde (~) symbol inside the function specifies which variable is a function of the other. For example, facet_grid(x ~ y) will generate subplots where x varies by row of the facet and y varies by column of the facet.
+
+
+```{r}
+# Write your code here
+p <- ggplot(data=mpg, aes(displ, hwy))+
+  geom_point()
+
+p+facet_grid(rows=vars(class))
+p+facet_grid(cols=vars(trans))
+p+facet_grid(vars(class), vars(trans))
+```
+
+**Question 4**
+
+* Create a scatter plot for the variables `cty` (x-axis) and `hwy` (y-axis) from the `mpg` dataset.
+* Add a geom to show the linear regression between x and y.
+    * Use a linear model (`lm`) instead of the default (`loess`) for computing the regression.
+    * Set the line color to `red`.
+    * Color the points by `class`.
+    * Set the point size to 6.
+
+```{r}
+# Write your code here
+ggplot(mpg, aes(x=cty, y=hwy))+
+  geom_point(aes(color=class, size=6))+
+  geom_smooth(method=lm, color="red")
+```
+
+**Question 5**
+
+* In the previous plot, you noticed subcompacts with a city fuel consumption of 15 miles per gallon.
+* Extract only the manufacturer and model of these subcompacts.
+
+```{r}
+# Write your code here
+subcompacts_15 <- subset(mpg, cty == 15)
+subcompacts_15
+
+subcom <- subset(subcompacts_15, class == "subcompact")
+subcom
+
+subcom_man_mod <- data.frame(subcom$manufacturer, subcom$model)
+subcom_man_mod
+```
+
+**Question 6**
+
+* The following code generates a warning:
+
+    ```R
+    ggplot(data = mpg) + 
+      geom_point(mapping = aes(x = displ, y = hwy, shape = class))
+    ```
+
+* Correct the code so all classes are displayed.
+    * Hint: You can manually specify shapes using the `scale_shape_manual` geom.
+
+```{r}
+# Write your code here
+ggplot(data=mpg)+
+  geom_point(mapping=aes(x=displ, y=hwy, shape=class), size=4)+
+  scale_shape_manual(values=c(">","*","<","#","+","~","^"))
+```
+
+**Question 7**
+
+* Given the following two vectors:
+
+```R
+x <- c(3.385,0.48,1.35,465,36.33,27.66,14.83,1.04,4.19,0.425,0.101,0.92,1,0.005,0.06,3.5,2,1.7,2547,0.023,187.1,521,0.785,10,3.3,0.2,1.41,529,207,85,0.75,62,6654,3.5,6.8,35,4.05,0.12,0.023,0.01,1.4,250,2.5,55.5,100,52.16,10.55,0.55,60,3.6,4.288,0.28,0.075,0.122,0.048,192,3,160,0.9,1.62,0.104,4.235)
+y <- c(44.5,15.5,8.1,423,119.5,115,98.2,5.5,58,6.4,4,5.7,6.6,0.14,1,10.8,12.3,6.3,4603,0.3,419,655,3.5,115,25.6,5,17.5,680,406,325,12.3,1320,5712,3.9,179,56,17,1,0.4,0.25,12.5,490,12.1,175,157,440,179.5,2.4,81,21,39.2,1.9,1.2,3,0.33,180,25,169,2.6,11.4,2.5,50.4)
+```
+* Combine the two vectors into a data frame called `sizeMass`.
+    * Name the columns as `size` and `mass` respectively.
+
+```{r}
+# Write your code here
+x <- c(3.385,0.48,1.35,465,36.33,27.66,14.83,1.04,4.19,0.425,0.101,0.92,1,0.005,0.06,3.5,2,1.7,2547,0.023,187.1,521,0.785,10,3.3,0.2,1.41,529,207,85,0.75,62,6654,3.5,6.8,35,4.05,0.12,0.023,0.01,1.4,250,2.5,55.5,100,52.16,10.55,0.55,60,3.6,4.288,0.28,0.075,0.122,0.048,192,3,160,0.9,1.62,0.104,4.235)
+y <- c(44.5,15.5,8.1,423,119.5,115,98.2,5.5,58,6.4,4,5.7,6.6,0.14,1,10.8,12.3,6.3,4603,0.3,419,655,3.5,115,25.6,5,17.5,680,406,325,12.3,1320,5712,3.9,179,56,17,1,0.4,0.25,12.5,490,12.1,175,157,440,179.5,2.4,81,21,39.2,1.9,1.2,3,0.33,180,25,169,2.6,11.4,2.5,50.4)
+sizeMass <- data.frame(x, y) #combining the two columns into a dataframe
+sizeMass
+
+colnames(sizeMass) <- c("size", "mass") #renaming the columns
+sizeMass
+```
+
+* Use the code below to plot the data.
+
+    ```R
+    ggplot(sizeMass, aes(size, mass)) +
+      geom_point() +
+      geom_smooth(method = "lm", color = "red", se = FALSE)
+    ```
+
+**Question 8**
+
+* Transform the data in the plot to mitigate the "squashed" appearance.
+
+1. Add two new columns named `size_log10` and `mass_log10` containing the log10 values of `size` and `mass`, respectively. Then use these new columns for plotting.
+
+```{r}
+# Write your code here (method 1)
+ggplot(sizeMass, aes(size, mass)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red", se = FALSE)
+
+size_log10 <- log10(sizeMass$size)
+mass_log10 <- log10(sizeMass$mass)
+
+logsizeMass <- data.frame(size_log10, mass_log10)
+
+ggplot(logsizeMass, aes(size_log10, mass_log10)) +
+  geom_point() +
+  geom_smooth(method = "lm", color = "red", se = FALSE)
+
+```
+
+2. Use `scale_x_log10()` and `scale_y_log10()` to set different scales for the x and y aesthetics.
+
+```{r}
+# Write your code here (method 2)
+ggplot(sizeMass, aes(size, mass))+
+  geom_point()+
+  geom_smooth(method = "lm", color = "red", se = FALSE)+
+  scale_x_log10()+
+  scale_y_log10()
+```

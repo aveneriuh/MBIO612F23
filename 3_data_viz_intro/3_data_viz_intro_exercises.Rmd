@@ -146,12 +146,8 @@ head(mpg, n=6)
 Create a bar chart to count the number of cars in each class.
 
 ```{r}
-class_freq <- as.data.frame(table(mpg$class))
-class_freq
-
-ggplot(data=class_freq, aes(x=Class,y=Freqency)+
-  geom_bar(stat="identity")
-  
+ggplot(data=mpg, aes(x=class))+
+  geom_bar()
 
 ```
 
@@ -161,11 +157,17 @@ ggplot(data=class_freq, aes(x=Class,y=Freqency)+
 Create a bar chart to count the percentage of cars in each class. 
 
 ```{r}
+class_freq <- as.data.frame(table(mpg$class))
+class_freq
 class_freq$Percent <- (class_freq$Freq / sum(class_freq$Freq)) * 100
 class_freq
 
 colnames(class_freq) <- c("Class", "Frequency", "Percentage")
 class_freq
+
+ggplot(class_freq, aes(x = Class, y = Percentage)) +
+  geom_bar(stat = "identity") +
+  ylab("Percentage (%)")
 
 ```
 
