@@ -1,0 +1,170 @@
+### Q0: Sampling and Distribution
+
+You are studying the population of a specific type of marine algae in different locations. Assume the algal density is normally distributed. You take samples from two locations (Location A and Location B) to compare the algae populations. Generate synthetic data to represent the algal density (individuals per square meter) at these two locations. Assume a mean density of 200 and 220 individuals/m^2 with a common standard deviation of 20 individuals/m^2 for both locations, with 50 samples from each location.
+
+
+```{r}
+### Write your code here
+library(ggplot2)
+mean_density_locationA <- 200
+mean_density_locationB <- 220
+std <- 20
+n <- 50
+
+#creating the 
+locationA <- rnorm(n, mean_density_locationA, std)
+locationB <- rnorm(n, mean_density_locationB, std)
+
+#combine into dataframe
+#algal_density <- data.frame(locationA, locationB)
+#colnames(algal_density) <- c("Location A", "Location B")
+#algal_density
+
+#make each location have a different value to tell between locations
+locAB <- c(locationA, locationB)
+label_location <- c(rep(1, n), rep(2,n))
+
+combinedAB <- data.frame("Algal_Density" = locAB, Location = factor(label_location, levels = c(1,2), labels = c("Location A", "Location B")))
+head(combinedAB)
+```
+
+### Q1: Data Cleaning
+
+Check your dataset for any outliers. 
+
+
+```{r}
+### Write your code here
+
+algal_boxplot <- ggplot(data=combinedAB, aes(x=Location, y=Algal_Density))+
+  geom_boxplot(fill="blue", alpha = 0.5)+
+  labs(
+    title = "Algal Density Boxplot",
+    x="LocationA", "Location B",
+    y="individuals/m^2")
+
+algal_boxplot
+
+#all outliers are points not included in the whiskers of the boxplot
+```
+
+
+### Q2: Visualization and Kernel Density Estimation (KDE)
+
+Plot a Kernel Density Estimation (geom_density plot) to visualize the distribution of algal densities at both locations. 
+
+```{r}
+### Write your code here
+ggplot(combinedAB, aes(x = Algal_Density, fill = Location)) +
+  geom_density(alpha = 0.5) +
+  labs(x = "Algal Density", y = "Density Estimate") +
+  ggtitle("Kernel Density Estimation of Algal Densities in Locations A and B") +
+  scale_fill_manual(values = c("Location A" = "blue", "Location B" = "red"))
+
+```
+
+### Q3: Binomial Distribution
+Suppose in a new survey, at each location, you take 10 random samples and in each sample, you identify whether a particular species of marine algae is present or not. Assume the probability of finding this species in a sample is 0.7 at Location A and 0.5 at Location B.
+
+Simulate this scenario using a binomial distribution, and compare the probability of finding the species in at least 7 out of 10 samples at both locations.
+
+```{r}
+### Write your code here
+#parameters
+n2 <- 10
+pA <- 0.7
+pB <- 0.5
+
+#use sum to add together all the probability values (dbinom) for 7, 8, 9, 10. if you dont use sum it will produce a list that you will end up having to sum later
+prob_A_7 <- sum(dbinom(7:10, n2, pA)) 
+prob_A_7
+
+prob_B_7 <- sum(dbinom(7:10, n2, pB))
+prob_B_7
+
+#there is a higher probability that you will fin
+```
+
+### Q4: Poisson Distribution
+Imagine a scenario where you are studying the occurrences of a particular rare marine event, such as the sighting of a rare marine species, over a set period at a specified location. Assume the average rate of occurrence is 3 per month.
+
+Utilize a Poisson distribution to calculate the probability of observing exactly 5 occurrences in a month, and the probability of observing 3 or fewer occurrences in a month.
+
+```{r}
+### Write your code here
+#poission for 5 occurrences
+dpois(5, 3)
+
+#poission for 3 occurrences
+sum(dpois(0:3, 3))
+#or ppois(3, 3)
+```
+
+### Q5: 
+consider the following two lists. 
+
+```{r}
+list1 <- c(44.40, 47.70, 65.59, 50.71, 51.29, 67.15, 54.61, 37.35, 43.13, 45.54, 62.24, 53.60, 54.01, 51.11, 
+           44.44, 67.87, 54.98, 30.33, 57.01, 45.27, 39.32, 47.82, 39.74, 42.71, 43.75, 33.13, 58.38, 51.53, 
+           38.62, 62.54, 54.26, 47.05, 58.95, 58.78, 58.22, 56.89, 55.54, 49.38, 46.94, 46.20, 43.05, 47.92, 
+           37.35, 71.69, 62.08, 38.77, 45.97, 45.33, 57.80, 49.17, 52.53, 49.71, 49.57, 63.69, 47.74, 65.16, 
+           34.51, 55.85, 51.24, 52.16, 53.80, 44.98, 46.67, 39.81, 39.28, 53.04, 54.48, 50.53, 59.22, 70.50, 
+           45.09, 26.91, 60.06, 42.91, 43.12, 60.26, 47.15, 37.79, 51.81, 48.61, 50.06, 53.85, 46.29, 56.44, 
+           47.80, 53.32, 60.97, 54.35, 46.74, 61.49, 59.94, 55.48, 52.39, 43.72, 63.61, 44.00, 71.87, 65.33, 
+           47.64, 39.74)
+
+list2 <- c(44.34, 48.85, 41.30, 39.79, 30.73, 44.32, 33.23, 19.98, 39.30, 58.78, 36.37, 54.12, 20.73, 44.17, 
+           52.79, 49.52, 46.59, 35.39, 32.25, 29.64, 46.76, 30.79, 37.64, 41.16, 72.66, 35.22, 48.53, 46.17, 
+           30.57, 43.93, 66.67, 51.77, 45.62, 38.66, 14.20, 61.97, 23.09, 56.10, 73.64, 23.34, 55.53, 41.07, 
+           21.42, 22.28, 20.98, 37.04, 23.07, 55.32, 76.50, 25.69, 56.82, 56.54, 49.98, 29.87, 43.21, 40.79, 
+           53.44, 39.41, 59.65, 39.38, 60.79, 29.26, 26.10, 93.62, 38.75, 49.47, 54.55, 37.74, 52.75, 50.53, 
+           41.77, 45.98, 44.49, 76.93, 33.88, 28.56, 45.57, 49.66, 51.55, 38.12, 29.05, 63.95, 39.76, 32.02, 
+           41.46, 42.04, 61.65, 46.27, 56.31, 37.51, 48.22, 40.13, 46.42, 31.57, 25.34, 74.96, 54.01, 26.23, 
+           35.83, 27.22)
+
+```
+
+These list were generated using the following code
+
+set.seed(123)  # Setting a seed for reproducibility
+list1 <- round(rnorm(100, mean = 50, sd = 10), 2)  # Generating 100 values from a normal distribution
+list2 <- round(rnorm(100, mean = 45, sd = 15), 2)  # Generating 100 values from another normal distribution
+
+
+Compare the distributions of these two lists to determine if they originate from the same distribution or from different distributions.
+
+1. Use geom_density to create a density plot for each list on the same graph. Use different colors to distinguish between the two lists:
+```{r}
+### Write your code here
+
+#Make separate data frames for each list
+#header of column 1 is "Value" with the numbers from list 1; Group is the second column that makes all values group = List 1
+List1 <- data.frame(
+  Value = list1, 
+  Group = "List 1"
+)
+
+List2 <- data.frame(
+  Value = list2,
+  Group = "List 2"
+)
+
+#combine df into one
+ListDF <- rbind(List1, List2)
+head(ListDF)
+
+ggplot(ListDF, aes(x=Value, fill=Group))+
+  geom_density(alpha=0.5)+
+  labs(
+    x="Value",
+    y="List Number"
+  )+
+  scale_fill_manual(values=c("List 1" = "blue", "List 2" = "red"))
+```
+
+Examine the plot you have generated. Do you think list1 and list2 come from the same distribution or different distributions? Why?
+Write down your observations and reasoning.
+
+
+* Write your answer below
+I think these two lists come from different distributions because the mean is slightly different with List 2 being slightly lower, but the value range is much greater in List 2, meaning the standard deviation would be higher.

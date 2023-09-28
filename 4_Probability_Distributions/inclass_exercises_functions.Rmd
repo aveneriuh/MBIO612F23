@@ -1,0 +1,168 @@
+Here are a few exercises to help you practice writing functions in R. 
+
+1. Compute Overlapping Items Size:
+   Write a function that computes the number of overlapping items between two sets. The inputs are two sets `A` and `B`, and the output is the size of the overlap, i.e., the intersection.
+- Example Input: 
+```{r}
+library(ggplot2)
+ A <- c(1, 2, 3, 4, 5)
+ B <- c(4, 5, 6, 7, 8)
+```
+- Your function should look something like this:
+```{r}
+ # complete the following code
+overlapping_items <- function(A,B){
+   return(length(intersect(A,B)))
+}
+```
+- Test your function:
+```{r}
+ overlapping_items(A, B)  # Output should be 2
+
+stopifnot(overlapping_items(A,B) == 2) #must add +1 to function
+```
+
+2. Compute Unique Items Size:
+   Write a function that computes the number of unique items between two sets. The input is two sets `A` and `B` and the output is the number of unique items between the two sets, i.e., the union.
+   
+- Example Input:
+```{r}
+ A <- c(1, 2, 3, 4, 5)
+ B <- c(4, 5, 6, 7, 8)
+ intersect(A, B)
+```
+- Your function should look something like this:
+```{r}
+# complete the following code
+unique_items <- function(A,B){
+   return(length(union(A,B)))
+}
+```
+- Test your function:
+```{r}
+ unique_items(A, B)  # Output: 8
+
+stopifnot(unique_items(A,B) == 8)
+```
+
+3. **Compute Jaccard Similarity Index:** 
+   The Jaccard Similarity Index is often used in ecology to measure the similarity between two communities. It is defined as the size of the intersection divided by the size of the union of the sample sets. The formula for the Jaccard similarity index is given by:
+
+   \[ J(A, B) = \frac{|A \cap B|}{|A \cup B|} \]
+
+   Fortunately, the functions required to compute the Jaccard index have already been created in previous exercises. The numerator is computed by the `overlapping_items` function and the denominator is computed by the `unique_items` function. Write a function to compute the Jaccard similarity index using these functions.
+
+- Example Input:
+```{r}
+A <- c(1, 2, 3, 4, 5)
+B <- c(4, 5, 6, 7, 8)
+```
+- Your function should look something like this:
+```{r}
+# complete the following code
+jaccard_similarity 
+```
+- Test your function:
+```{r}
+jaccard_similarity(A, B)  # Output: 0.25
+```
+
+
+4. Function with Default Parameters
+
+Compute Reproductive Success:
+   Write a function to calculate the reproductive success of a bird species based on the formula:
+   
+  success\_rate = (food_amount * 0.05) - (predator_count * 0.1) + (nesting_sites * 0.03).
+  
+   Set the default values for food_amount = 100, predator_count = 10, and nesting_sites = 20.
+
+- Example Input:
+
+ ```{r}
+ food_amount = 150
+ predator_count = 8
+ nesting_sites = 25
+ ```
+
+- Your function should look something like this:
+ ```{r}
+ # complete the following code
+ reproductive_success <- 
+ ```
+
+- Test your function:
+```{r}
+reproductive_success()  # Output with default values
+reproductive_success(food_amount = 150)  # Output with custom food_amount
+reproductive_success(food_amount = 100, predator_count = 5, nesting_sites = 30)  # Output with all custom values
+```
+
+
+5.  Computing the Gaussian log likelihood.
+
+
+
+Write a function named gaussian_log_likelihood that computes the log-likelihood of a given dataset assuming a Gaussian distribution. The function should have the following signature:
+
+```{r}
+# complete the following code
+gaussian_log_likelihood <- 
+```
+
+The log-likelihood is a statistical measure we'll delve into further in upcoming discussions. 
+For now, understand that it's utilized to evaluate how accurately a statistical model 
+represents the observed data. Essentially, the function provided above assists in 
+estimating the probability of observing the specified data under a Gaussian distribution 
+with mean \( \mu \) and standard deviation \( \sigma = 1 \).
+
+The formula to compute the log-likelihood of a dataset \( x \) given the parameters \( \mu \)  and \( \sigma \) of a Gaussian distribution is as follows:
+
+\[ 
+\log(L) = \sum_{i=1}^n \log(f(x_i | \mu, \sigma))
+\]
+
+where:
+- \( n \) is the number of data points,
+- \( f(x_i | \mu, \sigma) \) is the probability density function of the Gaussian 
+  distribution evaluated at data point \( x_i \),
+- \( \mu \) is the mean of the Gaussian distribution,
+- \( \sigma \) is the standard deviation of the Gaussian distribution.
+
+In R, you can compute the probability \( f(x_i | \mu, \sigma) \) using the `dnorm` function:
+
+```
+probability <- dnorm(x_i, mean = mu, sd = sigma)
+```
+
+
+
+The function should take three arguments:
+
+`data`: A vector of data points.
+`mu`: The mean of the Gaussian distribution (default value: 0).
+`sigma`: The standard deviation of the Gaussian distribution (default value: 1).
+The function should return the log-likelihood of the data given the specified Gaussian distribution parameters (
+mu and sigma).
+
+
+Example Input:
+
+```{r}
+data <- c(1.2, 2.3, 2.9, 3.5, 4.0)
+```
+
+Your function should look something like this:
+```{r}
+# complete the following code
+gaussian_log_likelihood <- 
+
+```
+
+Test your function using the following
+```{r}
+log_likelihood <- gaussian_log_likelihood(data)
+log_likelihood  # Output the computed log-likelihood
+```
+
+

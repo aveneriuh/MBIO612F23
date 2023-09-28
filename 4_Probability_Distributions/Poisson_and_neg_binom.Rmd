@@ -1,0 +1,196 @@
+```{r}
+library(ggplot2)
+```
+
+### Important Probability Distributions
+
+- Some commonly used distributions in data science include:
+  - Binomial and Normal (Gaussian), which are already well-known.
+  - Poisson
+  - Negative Binomial
+  - Power Law
+
+### The Poisson Distribution
+
+- The Poisson distribution is commonly used in experiments that measure the number of events occurring in a fixed period of time or a fixed area of space.
+  - This assumes the events are independent.
+- Examples include:
+  - The number of parrotfish in a transect.
+  - The reproductive pattern of certain shrimp, such as the number of eggs produced.
+  - The abundance (i.e., number) of common sponges or corals in a given quadrat.
+
+### Properties of the Poisson Distribution
+
+- The Poisson distribution is characterized by a single parameter, referred to as \( \lambda \).
+  - A random variable \( X \) follows a Poisson distribution—denoted as \( X \sim \text{Poisson}(\lambda) \)—if:
+    - \( X \) represents the number of events in a given time period or spatial area.
+      - Takes countably infinite positive values [0, 1, 2, ...].
+    - The events are independent, meaning that the occurrence of one event does not affect the likelihood of another event occurring.
+      - This is different from the binomial distribution, where the focus is on a fixed number of trials.
+    - Both the mean and the variance are represented by the parameter \( \lambda \).
+
+- The probability mass function (pmf) of a Poisson distribution is:
+\[
+p(X = x) = \frac{(e^{-\lambda} \lambda^x)}{x!}
+\]
+
+#### Example 
+
+- Assume that the number of eggs produced by a shrimp follows a Poisson distribution with \( \lambda = 10 \).
+
+- The probability distribution of the random variable \( X \) can be calculated as follows:
+
+```{r}
+lambda = 10
+x_axis= (0:30)
+p_x = dpois(x_axis, lambda)
+
+ggplot() +
+  geom_line(aes(x=x_axis, y=p_x))
+
+```
+
+### Example 2
+
+- The probability that a shrimp produces \( x \) eggs, where \( x \) is one of the numbers in the set \( \{5, 10, 30, 50\} \), can be calculated as follows:
+
+
+```{r}
+names(p_x) = x_axis
+p_x
+```
+
+```{r}
+c(p_x["5"], p_x["10"], p_x["30"], p_x["50"])
+```
+
+```{r}
+ggplot() +
+  geom_line(aes(x=x_axis, y=p_x)) +
+  geom_segment(aes(x = 5, y = 0, xend = 5, yend = p_x["5"]), color="red", size =1) +
+  geom_segment(aes(x = 10, y = 0, xend = 10, yend = p_x["10"]), color="red", size =1) +
+  geom_segment(aes(x = 30, y = 0, xend = 30, yend = p_x["30"]), color="red", size =1) +
+  geom_segment(aes(x = 50, y = 0, xend = 50, yend = p_x["50"]), color="red", size =1)
+```
+
+### Notes About the Poisson Distribution
+
+- Not all count data follow a Poisson distribution.
+  - Specifically, overdispersed data—where the mean is not equal to the variance—do not fit a Poisson distribution.
+
+- For values of \( \lambda > 40 \), the Poisson distribution can be approximated by a Gaussian distribution with \( \mu = \lambda \) and \( \sigma = \sqrt{\lambda} \).
+  - This approximation is supported by mathematical proofs.
+  - The approximation simplifies calculations.
+
+- It's worth noting that both the mean and the variance of the Poisson distribution are determined by the same parameter \( \lambda \).
+  - The significance of this characteristic is that it simplifies the distribution, making both the mean and variance easy to interpret.
+  - This also means that unless both the mean are equal (approximately equal), the data cannot be said to follow a Poisson distribution
+
+
+```{r}
+options(repr.plot.width = 18, repr.plot.height = 6)
+
+x_10 = (0:23)
+pmfs_x_10 = dpois(x_10, 10)
+
+x_200 = (160:240)
+pmfs_x_200 = dpois(x_200, 200)
+
+x_400 = (350:450)
+pmfs_x_400 = dpois(x_400, 400)
+
+ggplot() +
+  geom_line(aes(x_10, pmfs_x_10)) +
+  geom_line(aes(x_200, pmfs_x_200), color="red") +
+  geom_line(aes(x_400, pmfs_x_400), color="blue")
+```
+
+### The Negative Binomial Distribution
+
+* The Negative Binomial (\(NB\)) is a discrete distribution that describes the number of binary trials (success or failure, true or false, healthy or diseased, etc.) needed to achieve the \(k^{th}\) success.
+
+Examples:
+  * The number of times you must roll a die to get five ones.
+  * The number of corals you need to survey to find 10 affected by a specific disease.
+  * The number of shrimp you must catch to find one carrying 15 eggs.
+
+### Negative Binomial vs. Binomial
+
+- The Negative Binomial should not be confused with the Binomial distribution, where the random variable represents the number of successes in a fixed number of trials.
+
+- Another way to conceptualize the Negative Binomial is by considering it as the total number of failures before \(k\) successes are observed.
+  - This alternate definition may result in slightly different equations, but the underlying intuition remains similar.
+
+### Properties of the Negative Binomial Distribution
+
+* Trials in the sequence are independent.
+* Each trial can unambiguously result in either a success or a failure.
+* The probability of success is constant and equal to \(p\).
+* \(X\) denotes the total number of trials needed to achieve \(k\) successes (\(X-k\) failures).
+  * Unlike the Binomial distribution, the number of trials is not predetermined.
+    * This characteristic essentially "inverts" the Binomial problem, hence the term "Negative."
+
+### Example
+
+* Suppose you roll a fair six-sided die until it lands on the face showing 1 exactly seven times. The occurrences need not be consecutive.
+   * The probability of rolling a 1 is \( \frac{1}{6} \).
+   * \(X\) can be any value in the range \([7, \infty]\).
+
+
+```{r}
+p=1/6
+
+x_axis = (0:120)
+
+pmfs_x = dnbinom(x_axis, 7, p)
+
+ggplot() +
+  geom_line(aes(x_axis, pmfs_x))
+```
+
+```{r}
+c(max(pmfs_x), which.max(pmfs_x))
+```
+
+```{r}
+p=1/6
+
+x_axis = (0:120)
+
+pmfs_x = dnbinom(x_axis, 7, p)
+
+ggplot() +
+  geom_line(aes(x_axis, pmfs_x)) +
+  geom_vline(aes(xintercept=30))  
+```
+
+```{r}
+print("Sum of firt chunk")
+sum(pmfs_x[1:30])
+
+print("Sum of second chunk")
+sum(pmfs_x[-(1:30)])
+
+print("Sum of total")
+sum(pmfs_x)
+```
+
+#### Expected Value vs. Most Probable Value
+
+- The mean, also known as the expected value, is not necessarily the most probable value in a distribution.
+  
+- In symmetrical distributions, values occur with the same frequency on both sides of the mean.
+  - This symmetry causes the expected value to coincide with the most probable value over the long run.
+  
+- For asymmetrical distributions, values on one side of the mean are more likely than those on the other side.
+  - This asymmetry results in the expected value differing from the value with the highest probability.
+
+
+```{r}
+rnbinom(10, 7, 1/6)
+```
+
+```{r}
+mean(rnbinom(1000, 7, 1/6))
+```
+
