@@ -1,0 +1,126 @@
+---
+title: An R Markdown document converted from "in_class_practical_hypothesis_testing.ipynb"
+output: html_document
+---
+```{r}
+rm(list=ls())
+### Exercise 1.
+some_array <- 10:15
+some_array
+some_array[1] <- some_array[1] - 1
+some_array[2] <- some_array[2] - 1
+some_array[3] <- some_array[3] - 1
+some_array[4] <- some_array[4] - 1
+some_array[5] <- some_array[5] - 1
+some_array
+
+#loop
+for(i in 1:5){
+  print(i)
+}
+```
+
+```{r}
+#a <- rnorm(10, 0, 1)
+#b <- rnorm(10, 0, 1)
+#a
+#b
+#mean(a) - mean(b)
+
+#create a list/array to store for loop in
+list <- 1:10
+
+#repeat this multiple times - use a for loop
+for(batch in 1:10){
+  a <- rnorm(10, 0, 1)
+  b <- rnorm(10, 0, 1)
+  print(mean(a) - mean(b))
+  list[batch] <- (mean(a) - mean(b))
+}
+
+```
+
+
+1. Generate 100 pairs of samples (s1 and s2) each of size 50 from the same distribution (mean = 10, std = 4) and plot the distribution of the difference between their means.
+```{r}
+
+```
+
+
+
+2. Suppose you sampled two new samples and obtained a difference of 2.3, do you think the samples come from the same distribution?
+
+```{r}
+
+
+```
+
+
+
+3. What is the p-value associated with such an event?
+
+
+
+4. Now, upon sampling a mean of 0.2, what is the probability associated with such an event?
+
+
+
+
+5. You have the following data which you obtained from an experiment consisting of <complete this>. Use the t-test to assess the difference between both samples. What does the t-test indicate about the data? Is it generated from the same distribution?
+
+
+
+6. Would you be surprised if I told you that the data was in fact generated using the following method? Why?
+
+
+7. What is the most appropriate observed statistic we should use to compare the two samples?
+
+
+
+8. Plot the distribution of this test statistic, given the data above, under the null hypothesis.
+
+
+
+9. What can you say about the test value obtained? Is it likely?
+
+
+
+### Exercise 1.
+
+Suppose a vendor selling a probiotic product claims that the microbial composition of their product is distributed among five species as follows:
+
+Species_1: 30%
+Species_2: 20%
+Species_3: 20%
+Species_4: 20%
+Species_5: 10%
+
+To investigate this claim, you decide to utilize Polymerase Chain Reaction (PCR) to quantify the proportions of Species 1-5 in a sample of their product. Upon analysis, you obtain the following proportions:
+
+Species_1: 28%
+Species_2: 21%
+Species_3: 19%
+Species_4: 23%
+Species_5: 9%
+
+
+1. What is a suitable statistic to compare the two datasets?
+
+2. Write a function that takes two lists and returns the statistic you proposed above.
+
+3. Generate the distribution of your statistic under the null hypothesis.
+
+4. What is the p-value associated with observing such a test statistic under the null hypothesis?
+
+5. Based on your statistical analysis, do the results agree with the manufacturer's claimed distribution of bacterial species? Explain your reasoning.
+
+### Question 3
+
+* Suppose we have the following two samples. Use a permutation-based test to assess whether these two samples come from the same or different distributions. Illustrate all the steps.
+
+```{r}
+sample_1 <- c(2.28, 2.55, 5.4, 3.01, 4.63, 1.56, 2.81, 3.38, 3.3, 1.99, 3.02, 1.92, 3.71, 4.08, 0.78, 4.24, 1.76, 3.45, 3.66, 2.8, 2.35, 3.17, 3.44, 3.88, 0.95, 1.36, 4.43, 4.05, 3.44, 3.72, 3.92, 0.34, 4.11, 2.52, 3.23, 2.7, 3.87)
+sample_2 <- c(2.88, 3.92, 2.83, 1.99, 4.75, 4.19, 5.37, 3.38, 4.65, 5.67, 2.96, 1.71, 3.01, 3.04, 3.48, 5.35, 2.91, 3.75, 3.03, 3.32, 3.68)
+```
+
+

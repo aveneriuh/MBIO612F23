@@ -1,0 +1,764 @@
+```{r}
+library(ggplot2)
+```
+
+### Hypothesis Testing
+
+* Primer:
+    * A **statistic** is a numerical characteristic derived from a sample drawn from a population, for instance, the sample mean or sample variance.
+    * A **parameter** is a numerical characteristic of a population, for example, the population mean or population variance. Unlike a statistic, a parameter is a fixed value though unknown.
+
+* Hypothesis Testing Objective:
+    * The primary aim of hypothesis testing is to evaluate two competing statements (hypotheses) regarding a population parameter.
+
+* Distinguishing Between Parametric and Non-parametric Methods:
+    * **Parametric methods** rely on assumptions regarding the distribution of the population and are typically predicated on the known distribution parameters. These methods require a certain knowledge about the population distribution, often assuming normality.
+    * **Non-parametric methods** do not require making assumptions about the population's distribution or its parameters, making them more flexible but possibly less powerful in detecting a specified effect.
+
+
+### Key Concepts in Hypothesis Testing
+
+* When conducting hypothesis testing, two main aspects are assessed:
+    1. **Effect Size**:
+        * Represents the magnitude of the difference between two groups or the strength of an association.
+        * E.g., assessing whether an environmental initiative enhances marine diversity in a coastal area, the effect size would quantify the degree of improvement in diversity.
+    2. **P-value**:
+        * A p-value helps to quantify the evidence against a specified null hypothesis. It represents the probability of observing a statistic (or a more extreme one) when the null hypothesis is true.
+        * Essentially, a lower p-value (typically below 0.05) suggests significant evidence against the null hypothesis, indicating the observed data is unlikely under the null hypothesis.
+
+### Implementing Hypothesis Testing
+
+* Common Hypothesis Test - the t-test:
+    * The **t-test** is utilized to compare the means of two groups, helping to determine if there's a significant difference between them.
+    * Example:
+        * Testing the effect of chemicals oxybenzone and octinoxate, often found in sunscreens, on coral calcification.
+            * **Treatment Group**: Measuring calcification rate of coral with water containing oxybenzone and octinoxate.
+            * **Control Group**: Measuring calcification rate of coral with water devoid of these chemicals.
+
+    * Under the hypothesis testing framework:
+        * The **null hypothesis (H0)** might state that there's no difference in calcification rates between the two groups.
+        * The **alternative hypothesis (Ha)** could assert that there's a significant difference in calcification rates due to the presence of oxybenzone and octinoxate.
+
+The code snippet is generating a random dataset for a sample, referred to as 'Site 1', from a normal distribution. This data is stored in a data frame `data_1`, where the `measure` column holds the generated data values and the `site_name` column labels this sample as 'Site 1'.
+
+```{r}
+
+set.seed(110)
+data_1 = data.frame(measure=rnorm(40, 10, 1))
+data_1$site_name <- 'Site 1'
+head(data_1)
+```
+
+The code snippet is generating a random dataset for a second sample, labeled as 'Site 2', from the same population as the first sample, labeled as 'Site 1'. The scenario is analogous to going out on two separate occasions to collect samples from the same population. Both samples are drawn from a normal distribution with a mean of 10 and a standard deviation of 1, indicating they originate from the same statistical population. The data for 'Site 2' is stored in a data frame `data_2`, where the `measure` column holds the generated data values, and the `site_name` column identifies this sample as 'Site 2'. This systematic approach ensures consistency in the data collection process, which is crucial for subsequent comparative analysis or other statistical examinations.
+
+```{r}
+## set.seed(110) Why not do this here?
+data_2 = data.frame(measure=rnorm(35, 10, 1))
+data_2$site_name <- 'Site 2'
+head(data_2)
+```
+
+```{r}
+complete_data = rbind(data_1, data_2)
+head(complete_data)
+```
+
+```{r}
+tail(complete_data)
+```
+
+```{r}
+rnorm(10, mean=100, sd=5)
+```
+
+```{r}
+ggplot(complete_data, aes(x=measure, fill = site_name)) + 
+  geom_density(alpha = 0.4, bw =0.65) + 
+  xlim(0,20)
+```
+
+The `t.test()` function below is used to conduct an independent two-sample t-test to compare the means of the `measure` column from the `data_1` and `data_2` data frames. This test assesses whether there is a statistically significant difference between the means of these two samples. Since the two samples are assumed to come from the same population (with the same true population mean -- we manually set it to 10), any significant difference observed may be attributed to sampling variability or other factors. The result of this t-test provides a p-value, among other output, which helps to determine whether any observed difference between the means of `data_1` and `data_2` is statistically significant or if it's likely due to chance. 
+
+
+
+```{r}
+t.test(data_1$measure, data_2$measure)
+```
+
+Lo and behold, the p-value turns out to be less than 0.05, the common threshold for statistical significance. This suggests that these two samples are deemed statistically different from each other, despite our expectation for them to be similar as they were drawn from the same population.
+
+### Distribution of the Difference in Means
+
+* Understanding what just happened:
+    * Under the null hypothesis, we assume that there is no true difference in the means between two groups, implying that any observed difference is due to random chance. I.e., the difference in the values we sampled in Site 1 and Site 2 are different solely due to sampling variance.
+    * The mean of the distribution of the difference between the sample means should theoretically be zero when the samples come from the same population.
+    * This is NOT what the test reported. Why? Does this happen often?
+
+* Exploring this concept via simulation:
+    1. Simulate the process of:
+        * Drawing two independent samples, each with a size of 40 observations, from the same population distribution.
+        * Calculating the means of each sample.
+        * Computing the difference between these two means.
+    2. Repeat the above process a large number of times (e.g., 10,000 times) to construct a distribution of the differences in means.
+    3. Examine the resulting distribution:
+        * The mean of this distribution should center around zero if the null hypothesis holds true.
+        * The spread of the distribution provides insight into the variability of the difference in means due to sampling variability.
+
+
+```{r}
+data_1 = rnorm(40, 10, 1)
+data_2 = rnorm(40, 10, 1)
+mean(data_1) - mean(data_2)
+```
+
+```{r}
+n <- 40
+data <-  rnorm(40, 10, 1)
+mean(data)
+```
+
+```{r}
+getDiffMeans <- function(n=40){
+    data_1 = rnorm(40, 10, 1)
+    data_2 = rnorm(40, 10, 1)
+    mean(data_1) - mean(data_2)
+}
+getDiffMeans()
+```
+
+```{r}
+replicate(5, getDiffMeans())
+```
+
+```{r}
+diff_means = replicate(1000, getDiffMeans())
+ggplot()+
+  geom_histogram(aes(diff_means, y=..density..), bins =30, alpha=0.2, color="black") + 
+  geom_density(aes(diff_means), bw=0.08, size=1.5) + 
+  xlim(-2.5, 2.5)
+```
+
+### Example: Data From Two Different Distributions
+
+* In this scenario, we are considering data drawn from two distinct distributions. 
+  * Each distribution has its own unique mean: for the first distribution, the mean is $\mu_1 = 10$, and for the second distribution, the mean is $\mu_2 = 12$. 
+  * Both distributions share the same standard deviation of $\sigma = 1$. 
+
+
+* Technical Insights:
+   * The difference in means between these two distributions represents a "true" difference as they come from distinct distributions with differing central tendencies.
+   * The common standard deviation suggests that the spread or dispersion of data points around the mean is consistent across the two distributions.
+
+```{r}
+set.seed(110)
+data_1 = data.frame(measure=rnorm(40, 10, 1))
+data_1$site_name <- 'Site 1'
+data_2 = data.frame(measure=rnorm(40, 14, 1))
+data_2$site_name <- 'Site 2'
+complete_data = rbind(data_1, data_2)
+```
+
+```{r}
+ggplot(complete_data, aes(x=measure, fill = site_name)) + 
+  geom_density(alpha = 0.4, bw =0.65) + 
+  xlim(5,18)
+```
+
+### Assessing the Variability of Our Statistic - Different Samples
+
+* Revisiting the null hypothesis, it suggests that both datasets originate from the same distribution.
+    * Any perceived differences are solely attributed to sampling variability.
+
+* A significant metric for evaluating the disparity between both samples is the difference between their means.
+    * This is referred to as our observed statistic.
+
+* To contrast our statistic, we require a distribution of the difference between the two samples.
+    * This encapsulates the distribution of the test statistic under the assumption of the null hypothesis.
+
+* Generating the Background Distribution:
+    * Assuming the validity of the null hypothesis, i.e., both samples derive from a common distribution:
+        * The selection process for data_1 and data_2 is inconsequential.
+        * Under the null hypothesis, observations from data_1 and data_2 are interchangeable.
+    * Proceed to permute (shuffle) the combined data, and then partition it into two new datasets: new_data_1 and new_data_2.
+    * Calculate the difference in means between new_data_1 and new_data_2.
+
+* Through this method, we construct a hypothetical distribution of the difference in means under the assumption that the null hypothesis holds true. This distribution serves as a reference to ascertain whether the observed difference in means from our original samples is a common occurrence or a statistically significant deviation.
+
+
+### Assessing the Variability of Our Statistic -  Technical Deep Dive
+
+* The process of permutation testing revolves around the principle of exchangeability under the null hypothesis. 
+* By permuting the data, we are essentially creating an exhaustive simulation of all possible configurations of data_1 and data_2 under the null hypothesis.
+* The resultant distribution of the differences in means from these permutations provides a non-parametric approach to evaluating the probability of observing a difference as extreme as, or more extreme than, our original observed difference, given that the null hypothesis is true.
+
+* This technique is a robust method for hypothesis testing, especially in scenarios where the assumptions of parametric tests (e.g., normality, equal variances) might not hold.
+
+* It provides a flexible framework to understand the variability and significance of our observed statistic in the broader context of the hypothesis testing.
+
+### Data Permutation Example
+
+![](https://www.dropbox.com/s/i1m3vrwf6fzi9x0/permutation_shuffling.png?dl=1)
+
+```{r}
+# concatenate two vector
+a = c(1,2,3)
+b = c(4,5,6)
+c(a, b)
+```
+
+```{r}
+# shuffle a vecor
+sample(1:5)
+```
+
+```{r}
+(split_pos + 1) : length(a)
+```
+
+```{r}
+# split data
+
+split_pos = 4
+
+a = 1:10
+
+a[1:split_pos]
+print("--------")
+a[(split_pos + 1) : length(a)]
+```
+
+```{r}
+processOneIter = function(data_1, data_2){
+    
+    concat_data = c(data_1, data_2)
+    len_concat_data = length(concat_data)
+    
+    len_data_1 = length(data_1)    
+    shuffled_data = sample(concat_data)
+    new_data_1 = shuffled_data[1:len_data_1]
+    new_data_2 = shuffled_data[(len_data_1+1):len_concat_data]
+    mean(new_data_1) - mean(new_data_2)
+    
+}
+processOneIter(data_1, data_2)
+    
+```
+
+```{r}
+replicate(5, processOneIter(data_1, data_2))
+```
+
+```{r}
+mean_under_null = replicate(1000, processOneIter(data_1, data_2))
+
+ggplot()+
+  geom_histogram(aes(mean_under_null, y=..density..), bins =30, alpha=0.2, color="black") + 
+  geom_density(aes(mean_under_null), bw=0.2, size=1.5) + 
+  xlim(-2.5, 2.5)
+```
+
+### Assessing the Variability of Our Statistic - Different Samples (Continued)
+
+* Quantifying the Likelihood:
+    * We aim to measure the likelihood of observing the actual difference in means between our original datasets under the simulated scenario of the null hypothesis. This simulation presupposes that both datasets emerge from a shared distribution, making the observed difference a product of random sampling variation.
+
+* Empirical Estimation:
+    * Using the permutation testing process, we have created a distribution of differences in means under the null hypothesis by reshuffling the combined data and recalculating the mean differences iteratively.
+    * The likelihood of the observed data is then empirically estimated by identifying the proportion of permuted datasets that yielded a difference in means as extreme or more extreme than the observed difference in means from our original datasets.
+    * This proportion serves as an empirical *p-value*, representing the probability of observing a difference in means at least as extreme as our original observed statistic, under the presumption that the null hypothesis is true.
+
+```{r}
+observed_value = mean(data_1) - mean(data_2)
+observed_value
+```
+
+```{r}
+ggplot()+
+  geom_histogram(aes(mean_under_null, y=..density..), bins =30, alpha=0.2, color="black") + 
+  geom_density(aes(mean_under_null), bw=0.2, size=0.5) + 
+  xlim(-5, 5) + 
+  geom_point(aes(observed_value, 0), color="red", size=10)
+```
+
+```{r}
+sum(mean_under_null <= observed_value) / length(mean_under_null)
+```
+
+### What have we learned?
+
+* Central Concept:
+    * The core conclusion from our analysis is that the difference in means of samples drawn from the same distribution averages to 0. This fundamental concept underpins the assessment of the null hypothesis, where we postulate that any observed difference in the means of two samples is purely a consequence of random sampling variability.
+
+* Utility in Hypothesis Testing:
+    * This characteristic is very useful for testing the null hypothesis. It provides a basis for generating a reference distribution under the null hypothesis by permuting the combined data, thereby simulating a scenario where both samples are drawn from a common distribution.
+
+* Evaluating Observed Statistic:
+    * By comparing the observed difference in means of our original samples with the distribution of mean differences generated under the null hypothesis, we glean insight into the likeness or unlikeness of the two samples, while duly accounting for sampling variability. 
+    * This comparison yields an empirical p-value, denoting the probability of obtaining a mean difference as extreme or more extreme than the observed statistic, under the assumption that the null hypothesis holds.
+    * A lower p-value (typically below 0.05) would indicate a statistically significant difference between the samples, thus challenging the validity of the null hypothesis.
+
+* Enhanced Understanding:
+    * Through this analytical approach, we have not only assessed the observed statistic's significance but also established a robust methodology for hypothesis testing, which is beneficial in scenarios without parametric assumptions.
+    * This framework increses understanding of the data. It shows whether the observed differences are mere products of chance or indicative of underlying dissimilarities between the populations the samples represent.
+
+
+```{r}
+### Comparing Samples from Similar Distributions
+set.seed(42)
+treatment = rnorm(40, 10, 1)
+control = rnorm(40, 10, 1)
+mean_under_null = replicate(1000, processOneIter(treatment, control))
+observed_value = mean(treatment) - mean(control)
+observed_value
+```
+
+```{r}
+ggplot()+
+  geom_histogram(aes(mean_under_null, y=..density..), bins =30, alpha=0.2, color="black") + 
+  geom_density(aes(mean_under_null), bw=0.2, size=0.5) + 
+  xlim(-3, 3) + 
+  geom_point(aes(observed_value, 0), color="red", size=10)
+```
+
+```{r}
+sum(mean_under_null < observed_value) / length(mean_under_null)
+```
+
+### Evaluating the Surprise Element in an Observed Statistic
+
+* Analysis of Permutation Results:
+    * Of th  1000 permutations executed, how many many yielded a difference in means equal to or exceeding the observed statistic of -0.119.
+    * This count defines the extent to which our observed statistic aligns with the simulated null hypothesis scenario.
+
+* Interpretation of Results:
+    * A higher count of permutations that exhibit a mean difference equal to or surpassing -0.119 diminishes the "surprise" element of our observed statistic,
+        *  I.e., such a statistic is fairly probable under the null hypothesis.
+    * Conversely, a lower count amplifies the "surprise" factor,
+      *  The observed statistic is less likely to have emerged from a common distribution
+         * This casts doubt on the assumption that the means of the two samples are identical.
+
+* Statistical Significance:
+    * The proportion of permutations yielding a mean difference equal to or larger than -0.119 serves as an empirical p-value
+      * It provides a quantitative measure of the observed statistic's surprise element. 
+    * A smaller p-value, often below the threshold of 0.05, denotes a statistically significant result, implying that the observed difference in means is likely not a product of random chance and may warrant further investigation.
+
+### Understanding the P-Value
+
+* Defining P-value:
+    * The p-value is a tool used to gauge how unusual or "surprising" our observed statistic is.
+    * It essentially tells us how often we would come across a statistic as extreme as ours if the assumed conditions (the null hypothesis) were true.
+
+* Tail Areas:
+    * The p-value is determined by looking at the areas in the tails of the distribution, which could be on the upper end, lower end, or both, depending on the context.
+    * These tail areas help us visualize and measure the extremeness of our observed statistic.
+
+* Empirical Distribution:
+    * Since we are dealing with an empirical distribution derived from the data, calculating the p-value becomes straightforward. 
+    * By examining the placement of our observed statistic within this distribution, we can easily compute the proportion of data points that are as extreme or more extreme, giving us our p-value.
+
+### Delving Deeper into the P-value - Cont'd
+
+The P-value encapsulates the probability, under the framework of the null hypothesis, that the test statistic matches or exceeds the extremity of the value observed in the data, in the context of the alternative hypothesis.
+
+* Interpretation of P-value:
+  * A small P-value indicates that the observed statistic deviates significantly from what the null hypothesis anticipates.
+      * In such scenarios, the null hypothesis becomes less plausible, and the data leans towards supporting the alternative hypothesis.
+      * Commonly, a P-value below 5% (or 0.05) is labeled as "statistically significant," signifying that such outcomes are rare enough (occurring less than 1 in 20 times) to be considered surprising under the null hypothesis.
+
+* Significance Level ($\alpha$):
+  * The significance level, denoted by $\alpha$, is the threshold risk we are willing to take of wrongly rejecting the null hypothesis when it's true.
+      * For instance, a significance level of 0.05 embodies a 5% risk of incorrectly inferring a difference when no real difference exists.
+      * This concept parallels the idea of a confidence interval, where we quantify the range within which our true population parameter likely resides.
+
+* Historical Context by Fisher (1890-1962):
+    * Fisher proposed the rationale behind adopting a 0.05 significance level, articulating it as a convenient standard for experimenters. This threshold helps disregard a bulk of the variability induced by chance in experimental results, thus honing focus on potentially genuine findings.
+```
+It is usual and convenient for experimenters to take 5 per cent as a standard level of significance, in the sense that they are prepared to ignore all results which fail to reach this standard, and, by this means, to eliminate from further discussion the greater part of the fluctuations which chance causes have introduced into their experimental results.
+```
+
+#### Understanding Errors in T-Test
+
+* Variance and Sample Differences:
+  * When dealing with a population that has a lot of variance, finding a difference between two samples could just be due to chance.
+    * This means that even though we see a difference, the two groups aren't truly different in a meaningful way.
+    * While less likely, this situation can also pop up in populations with little variance.
+
+* Types of Errors in Hypothesis Testing:
+  * When we perform a hypothesis test, like a T-test, there are two main errors we might run into:
+
+    * **Type I Error**:
+      * This is when we conclude that there is a significant difference between the groups, while in reality, there isn't.
+      * Imagine telling someone they've won the lottery when they actually haven't — it's a big error.
+
+    * **Type II Error**:
+      * On the flip side, a Type II error is when we fail to catch a real difference between the groups.
+      * Like missing the fact that someone has won the lottery — it's a missed opportunity to catch something important.
+
+
+### Type I and Type II Errors
+
+![](https://www.dropbox.com/s/9oyf3jv3mkwlz59/type_I_II_errors.png?dl=1)
+* Image form Wikipedia (https://en.wikipedia.org/wiki/Type_I_and_type_II_errors)
+
+#### Type I and II Errors Beyond Hypothesis Testing
+
+* The concept of Type I and Type II errors extends beyond just T-tests to many scenarios where decisions are made based on a threshold or cut-off point.
+  * These errors are fundamental considerations in various fields including medicine, quality control, and machine learning, among others.
+
+* False Positives and False Negatives:
+  * In medical testing, for instance, these errors correspond to what are known as false positives and false negatives.
+    * **False Positive (Type I Error)**:
+      * This is when a test incorrectly indicates the presence of a condition (like a disease) when it actually isn’t present. For instance, telling a healthy person that they have a disease based on a test result.
+    * **False Negative (Type II Error)**:
+      * Conversely, a false negative is when a test incorrectly shows a negative result for a condition that is actually present. For instance, telling a sick person that they are healthy based on a test result.
+
+* We will cover these tests when we talk about classificaiton in machine learning and statistical inference.
+
+### Refining the Hypothesis Testing Approach (General Algorithm)
+
+* Following is a more elucidated version of the strategy employed for hypothesis testing:
+
+1. **Null Hypothesis Assumption and Statistic Calculation**:
+   * Initially, we operate under the assumption that the null hypothesis holds true. Subsequently, we calculate a test statistic which quantifies the difference between the sample(s) and the population parameter or between two samples.
+     * Selecting a pertinent test statistic is pivotal as it serves as a lens through which we scrutinize the hypothesis. It represents the observed value of the statistic under the assumption of the null hypothesis.
+
+2. **Distribution Construction via Permutations or Bootstrapping**:
+   * Employing methods like permutations or bootstrapping, we construct a distribution of the test statistic assuming the null hypothesis is true. 
+     * Permutation entails re-arranging the data points and recalculating the statistic to generate a distribution of values under the null hypothesis.
+     * Bootstrapping involves generating multiple bootstrap samples (with replacement) from the original data, each time recalculating the statistic to build its distribution under the null hypothesis.
+
+3. **Inference from the Statistic Distribution**:
+   * Utilizing the built distribution, we gauge the plausibility of our observed statistic under the null hypothesis.
+     * Essentially, we are assessing the likelihood of encountering a value as extreme or more extreme than the observed statistic, given the null hypothesis is true.
+     * This step often involves calculating a p-value, which quantifies this likelihood, aiding us in making a decision regarding the null hypothesis.
+  
+
+```{r}
+set.seed(10)
+men_group = tibble(height= rnorm(50, 177, 7))
+men_group$gender = "Men"
+
+women_group = tibble(height= rnorm(50, 172.5, 5))
+women_group$gender = "Women"
+
+complete_data = rbind(men_group, women_group)
+
+ggplot(complete_data, aes(x=height, fill = gender)) + 
+  geom_density(alpha = 0.4, bw =6) +
+  xlim(145, 220)
+
+t.test(men_group$height, women_group$height, ) 
+```
+
+```{r}
+data = t.test(rnorm(50, 177, 7), rnorm(50, 172.5, 5))
+str(data)
+```
+
+```{r}
+data$p.value
+```
+
+```{r}
+replicate(10, 
+    t.test(rnorm(50, 177, 7), rnorm(50, 172.5, 5))$p.value
+)  
+```
+
+```{r}
+replicate(10, 
+    t.test(rnorm(50, 177, 7), rnorm(50, 172.5, 5))$p.value
+)  < 0.05
+```
+
+```{r}
+passes_t_test = replicate(10000, 
+    t.test(rnorm(50, 177, 7), rnorm(50, 172.5, 5))$p.value
+)  < 0.05
+```
+
+```{r}
+sum(passes_t_test) / length(passes_t_test)
+```
+
+```{r}
+### Delving Into Proportions Comparison
+
+* **Background Insight**:
+   * Previous research has identified that the compounds butylparaben, octinoxate, benzophenone-3, and 4-methylbenzilydene are associated with a bleaching effect on 83% of corals tested.
+
+* **Recent Survey Analysis**:
+   * A newer survey yielded a result where 38 out of 45 corals (84.4%) bleached upon exposure to the aforementioned compounds.
+
+* **Sampling Variability or Consistent Observation?**:
+   * The key inquiry here is whether the deviation in the bleaching proportions (from 83% to 84.4%) is merely a result of sampling variability or if the recent survey fundamentally aligns with the past findings.
+
+* **Measuring Discrepancy**:
+   * We are particularly intrigued by the difference between the reference proportion of 83% and the new survey result of 84.4%.
+     * Significant discrepancies may suggest that the experiment might be inducing some variation.
+```
+
+### Delving Into Proportions Comparison - Cont'd
+
+* Procedure
+   1. Hypothesis Framing:
+      * Null Hypothesis (H0): The difference in bleaching proportions is due to sampling variability alone, with no real effect by the compounds.
+      * Alternative Hypothesis (Ha): The compounds indeed have a different effect, as exhibited by the significant difference in bleaching proportions.
+
+   2. **Test Statistic Calculation**:
+      * Here, our test statistic can be the absolute difference in proportions between the historical data and the recent survey.
+
+   3. **Distribution Construction**:
+      * Assume the null hypothesis is true and use methods like bootstrapping to create a distribution of the test statistic. This can be achieved by resampling (with replacement) from the pooled data, keeping track of the proportion difference each time.
+
+   4. **Inference from Distribution**:
+      * Using the built distribution, assess how likely we are to observe a difference of 1.4% or more under the assumption of the null hypothesis.
+      * Calculate the p-value: the proportion of simulated test statistics that are as extreme or more extreme than the observed test statistic.
+
+   5. **Decision**:
+      * If the p-value is less than a predetermined significance level (e.g., 0.05), we have evidence to reject the null hypothesis in favor of the alternative, indicating that the observed discrepancy is not just due to sampling variability.
+
+Through this systematic examination, we'll be equipped to make an informed judgment on whether the recent survey outcome is in alignment with the historical data or if the observed difference is statistically significant, hinting at a probable distinct effect by the compounds.
+
+### Elaborating on Test Statistic Selection
+
+* **Test Statistic Identification**:
+   * A sensible choice for the test statistic in this scenario is the absolute difference between the reference proportion (83%) and the observed proportion from the experiment (84.4%).
+
+\[ | 84.4 - 83 | = 1.4\% \]
+
+* **Hypothesis Formulation**:
+   1. **Null Hypothesis (H0)**:
+      * Under the null hypothesis, we postulate that there exists no significant difference between the sample proportion of generic drugs sold and the reference proportion of 83%.
+         * Essentially, any observed discrepancy is attributable solely to the inherent sampling variance.
+
+   2. **Alternative Hypothesis (Ha)**:
+      * Contrarily, the alternative hypothesis posits that the observed difference in proportions is too substantial to have occurred merely by chance.
+
+* **Approach Outline**:
+   1. **Statistic Computation**:
+      * Compute the absolute difference between the reference proportion and the observed proportion, which in this instance equals 1.4%.
+
+   2. **Simulated Distribution Under Null Hypothesis**:
+      * Assuming the null hypothesis is true, perform resampling techniques like bootstrapping or permutation tests to create a distribution of the test statistic. 
+
+   3. **P-Value Calculation**:
+      * Determine the p-value by assessing the proportion of simulated test statistics that are as extreme or more extreme than the observed test statistic of 1.4%.
+
+   4. **Inference and Decision**:
+      * If the p-value falls below a predetermined significance threshold (e.g., 0.05), this would indicate that the observed difference is statistically significant, lending support to the alternative hypothesis over the null hypothesis.
+
+
+```{r}
+model_proportions = c(0.83, 0.17)
+data = sample(c("bleached", "healthy"), 45, replace=TRUE, prob=model_proportions)
+data
+```
+
+```{r}
+sum(data=="bleached")/length(data)
+```
+
+```{r}
+computDiff = function(bleach_prob, healthy, sample_size, ref_bleach_prop){
+    model_proportions = c(bleach_prob, healthy)
+    data = sample(c("bleached", "healthy"), 45, replace=TRUE, prob=model_proportions)
+    abs((sum(data=="bleached")/length(data)) - ref_bleach_prop)
+}
+
+computDiff(0.83, 0.17, 45, 0.83)
+```
+
+```{r}
+diff_data = replicate(5000, computDiff(0.83, 0.17, 45, 0.83))
+ggplot()+
+  geom_histogram(aes(diff_data), bins=15)+
+  geom_point(aes(1.4, 0), size=5, color = "red")
+```
+
+### Extending Comparison to Multiple Categories
+
+* The procedure employed in the preceding single-category analysis is expansible to scenarios encompassing multiple categories.
+
+* Uniform Approach with Distinct Test Statistic:
+   * While the core methodology remains consistent, the extension to multiple categories necessitates the formulation of a novel test statistic tailored to multi-categorical data.
+
+  1. In a multi-categorical setting, a suitable test statistic could be total variation distance (TVD) which quantifies the divergence between observed counts and counts expected under the null hypothesis across all categories.
+  2. Null Hypothesis (H0): The observed distribution across categories is congruent with the expected distribution, attributing any discrepancy to sampling variability.
+* Alternative Hypothesis (Ha): The observed distribution significantly deviates from the expected distribution, suggesting a real effect.
+  3.  Under the assumption of the null hypothesis being true, employ resampling techniques (like sampling from the multinomial) to build a simulated distribution of the test statistic.
+  4. Utilize the simulated distribution to ascertain the p-value, indicating the likelihood of observing a test statistic as extreme or more extreme than the one calculated from the actual data.
+  5. A p-value below a predetermined significance level (e.g., 0.05) signals that the observed data is statistically significant, favoring the alternative hypothesis.
+
+* This structured approach is versatile and can be applied across a spectrum of multi-categorical analyses, facilitating the examination of the data.
+
+
+### New Methods for Estimating Fish Diversity?
+
+* You proposed a faster autonomous AI-driven approach for assessing the fish diversity within a specified region.
+
+![](https://www.dropbox.com/s/cohr2693y8b8stb/eDNA_fish.png?dl=1)
+
+* How can you validate its statistical efficacy?
+
+### Enhanced Techniques for Appraising Fish Diversity - Continued
+
+* Your method facilitates the estimation of population ratios of various fish species such as Tilapia, Blenny, Angelfish, Salmon, and others within a controlled pisciculture environment.
+* The ground truth concerning the fish species' ratios is acknowledged, represented as: 
+  * `true_ratios = c(0.20, 0.08, 0.12, 0.54, 0.06)`
+
+* Utilizing the eDNA (environmental DNA) analysis, you've ventured to estimate the population ratios of these fish species:
+  * `estimated_ratios = c(0.26, 0.08, 0.08, 0.54, 0.04)`
+
+* The data visualization (see below) underscores the comparative analysis between the true ratios and the estimated ratios derived from your eDNA examination.
+   * Represents a descriptive narrative on the precision and efficacy of the eDNA testing methodology in approximating fish diversity within the pond.
+
+
+```{r}
+kind = c('Tilapia', 'Tilapia', 'Blenny', 'Blenny', 'Angelfish', 'Angelfish', 'Salmon', 'Salmon',  'Other', 'Other')
+ratios = c(0.20, 0.26, 0.08, 0.08, 0.12, 0.08, 0.54, 0.54, 0.06, 0.04)
+method = rep(c("known", "eDNA"), 5)
+
+
+fish_proportions = data.frame(kind, ratios, method)
+fish_proportions
+```
+
+```{r}
+ggplot(fish_proportions, aes(fill=method, y=ratios, x=kind)) + 
+    geom_bar(position="dodge", stat="identity") + 
+    coord_flip()
+```
+
+### Are the Values Simialr or Statistically Different?
+
+* Given the graph and numbers provided, let's consider how we could test the a accuracy of the new method.
+
+  1. Null and alternative hypotheses:
+     * Null Hypothesis (H0): The differences between the true ratios and the estimated ratios are due to random chance alone
+         * The eDNA testing method is accurate.
+     * Alternative Hypothesis (H1): The differences between the true ratios and the estimated ratios are significant, hinting that the eDNA testing method might have some errors.
+
+  2. What could be a good test statistic?
+     * A simple test statistic for this situation could be the total of absolute differences between the true ratios and the estimated ratios.
+       * This will give us a single number showing how far off the estimated ratios are from the true ratios.
+
+  3. How can we generate data under Null Hypothesis.
+     * Can we use permutation testing here?
+
+### Null and alternative hypothesis for the multinomial example
+
+* Breaking down our hypotheses:
+
+  * Null Hypothesis (H0): The variation seen between the two methods of estimating fish ratios is merely a result of sampling randomness.
+    * Basically, if we were to manually sample form the ponds and count the proportions, it's plausible we might see a difference even bigger just by chance.
+
+  * Alternative Hypothesis (H1): The difference in the results is too substantial to blame on random chance alone.
+    * Meaning, if we repeated this experiment, we'd rarely, or maybe never, see such a big difference unless there's something else going on besides random sampling.
+
+* Here's the key point:
+
+  * We are not zooming in on whether one method is consistently over or under guessing the number of a specific type of fish.
+    * What's we'd like to check check is if both methods give us similar results, or if the new method is giving us a totally different picture compared to the manual counting method.
+
+### 1. The test statistic
+
+* The **total variation distance** serves as a tool to measure the disparity between two distributions.
+  * A suitable test statistic for this scenario would be one that facilitates the quantification of the deviation between the two distributions.
+
+
+![](https://www.dropbox.com/s/6sbxzuc4fxkuuci/difference.png?dl=1)
+
+### Understanding Total Variation Distance
+
+* Observe that the sum of the values under the `difference` column equals 0.
+
+  * This occurs because the positive entries sum up to 0.14, which precisely offsets the total of the negative entries amounting to -0.14.
+
+* A straightforward way to bypass the issue of numbers cancelling each other out is to consider the absolute values of the differences. Hence, we sum up these absolute values and divide by two to compute the Total Variation Distance (TVD) between the two distributions.
+
+$$
+\text{TVD} = \frac{1}{2} \sum_{x \in \Omega} |P(x) - Q(x)|,
+$$
+
+where `P` and `Q` denote the two probability measures over the sample space $\Omega$. 
+
+* Although there are other metrics to measure the distance between two distributions, the Total Variation Distance is intuitive and computationally efficient, making it a practical choice for our analysis.
+
+### Data Generation Under Null Hypothesis
+
+* In this step, would like to create a reference distribution to evaluate our test statistic against, under the assumption that the null hypothesis holds true.
+* The task involves generating proportions that could have plausibly arisen under the null hypothesis scenario.
+* This procedure is similar to the method used for testing proportions under the null, with the key distinction being the inclusion of multiple categories in this case, as opposed to a singular category.
+  * We will be using only the reference distribution to generate new samples. 
+
+### Extending to Multinomial Distribution
+
+* The Multinomial distribution is an extension of the binomial distribution, with multiple categories instead of just two.
+  * The individual trials remain independent of one another.
+  * The probability associated with each outcome is consistent across all trials.
+  * The entire setup comprises 'n' repeated trials.
+    * To be precise, we will generate a sample of the same size that obtained using the eDNA method
+  * Every trial presents a discrete set of possible outcomes, represented by the categories.
+
+```{r}
+# This is equivalent to the multinomial above but returns the outcomes of each trial rather than the outcomes at the end
+sample(c('Tilapia', 'Blenny', 'Angelfish', 'Salmon', 'Other'), 200, replace=TRUE, prob=c(0.20, 0.08, 0.12,0.54, 0.06))
+```
+
+```{r}
+rmultinom(1, 200, prob=c(0.20, 0.08, 0.12,0.54, 0.06))
+```
+
+```{r}
+rmultinom(1, 200, prob=c(0.20, 0.08, 0.12,0.54, 0.06))/200
+```
+
+### Conducting the Hypothesis Test Simulation
+
+* With the given sample proportions, the task is to determine the sampling distribution of the `TVD` is fairly similar to what we covered earlier using the difference betwen the means:
+  1. Start by generating a random sample utilizing the multinomial distribution based on the reference proportions.
+  2. Calculate and record the sample `TVD` to build the background distribution.
+  3. Compare the observed value (difference between reference and original proportions) with the data simulated under the assumption of the null hypothesis.
+
+```{r}
+sampleOneIteration = function(){
+    true_proportions = c(0.20, 0.08, 0.12,0.54, 0.06)
+    sample_proportions = rmultinom(1, 200, prob=true_proportions)/200
+    sample_tvd = sum(abs(true_proportions- sample_proportions))/2
+    sample_tvd
+        
+}
+sampleOneIteration()
+```
+
+```{r}
+tvds = replicate(1000, sampleOneIteration())
+```
+
+```{r}
+fish_proportions
+```
+
+```{r}
+fish_proportions[fish_proportions["method"] == "eDNA",]['ratios']
+```
+
+```{r}
+known_ratios  = fish_proportions[fish_proportions["method"] == "known",]['ratios']
+eDNA_ratios  = fish_proportions[fish_proportions["method"] == "eDNA",]['ratios']
+observed_stat =  sum(abs(known_ratios - eDNA_ratios))/2
+```
+
+```{r}
+
+ggplot() + 
+  geom_histogram(aes(x = tvds, y = ..density..), bins = 15) +
+  geom_point(aes(x = observed_stat, y = 0), size = 5, color = "red")
+```
+
+```{r}
+p_value = sum(tvds > observed_stat)  / length(tvds)
+p_value
+```
+

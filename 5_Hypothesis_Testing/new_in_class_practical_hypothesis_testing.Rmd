@@ -1,0 +1,244 @@
+### Exercise 1
+
+Generate a plot of the differences in means between 100 pairs of samples. Each sample pair (s1 and s2) should have 50 observations drawn from the same distribution (mean = 10, standard deviation = 3).
+
+To assist you, I've provided a function named generate_diff_means. Here's how to use it:
+
+Function Parameters:
+
+* n: Number of sample pairs to generate. 
+* size_1: Size of the first sample in each pair.
+* size_2: Size of the second sample in each pair.
+* mu_1: Mean of the first sample.
+* sd_1: Standard deviation of the first sample.
+* mu_2: Mean of the second sample.
+* sd_2: Standard deviation of the second sample.
+
+Output:
+The function returns $n$ values, each representing the difference between the means of the two samples.
+
+You can use this function just like the others we've encountered. It's absolutely okay if you're not yet familiar with how it works.
+
+```{r}
+generate_diff_means <- function(n, size_1, size_2, mu_1=0, sd_1=1, mu_2=0, sd_2=1){
+    diff_means = 1:n
+    for (sample_number in 1: n){
+        s1 = rnorm(size_1, mu_1, sd_1)
+        s2 = rnorm(size_2, mu_2, sd_2)
+        diff_means[sample_number] <- mean(s1) - mean(s2)
+    }
+    diff_means
+}
+```
+
+```{r}
+# Parameter definitions
+library(ggplot2)
+
+n <- 100
+size_1 <- 50
+size_2 <- 50
+mu_1 <- 10
+sd_1 <- 3
+mu_2 <- 10
+sd_2 <- 3
+
+#creating the function
+generate_diff_means <- function(n, size_1, size_2, mu_1=0, sd_1=1, mu_2=0, sd_2=1){
+    diff_means = 1:n
+    for (sample_number in 1: n){
+        s1 <- rnorm(size_1, mu_1, sd_1)
+        s2 <- rnorm(size_2, mu_2, sd_2)
+        diff_means[sample_number] <- mean(s1) - mean(s2)
+    }
+    diff_means
+}
+
+#fill in the parameters for the function created - applying the fuction to get actual values
+mean_diff <- generate_diff_means(n=100, size_1=50, size_2=50, mu_1=10, sd_1=3, mu_2=10, sd_2=3)
+mean_diff
+```
+
+
+2. Suppose you sampled two new samples and obtained a difference of 2.3, do you think the samples come from the same distribution?
+
+```{r}
+# Write your answer here
+#These new samples are most likely to be from a difference distribution.
+```
+
+3. What is the empirical  p-value associated with such an event?
+
+```{r}
+# Write your code here
+sum(abs(mean_diff) >= 2.3) / length(mean_diff)
+
+```
+
+4. Now, upon sampling a mean of 0.2, what is the empirical probability associated with such an event?
+
+```{r}
+# Write your code here
+sum(abs(mean_diff) >= 0.2) / length(mean_diff)
+```
+
+5. You have the following two datasets, which you obtained from an experiment. Use the t-test (t.test function in R) to assess the difference between both samples. What does the t-test indicate about the data? Is it generated from the same distribution?
+
+``` {r}
+dataset_1 <- c( 9.22, 11.12, 8.91, 10.9, 9.91, 9.74, 9.39, 10.77, 10.51, 8.78, 8.86, 10.15, 10.4, 8.89, 9.82, 10.89, 10.26, 10.72, 8.72, 9.03, 9.99, 7.65, 9.7, 9.2, 10.86 )
+dataset_2 <- c( 12.21, 10.14, 10.84, 9.31, 9.8, 10.16, 9.25, 11, 10.09, 9.34, 9.02, 9.84, 9.99, 10.98, 11.16, 12.02, 11.17, 9.87, 10.32, 9, 9.8, 10.38, 11.06, 10.65, 10.1 )
+```
+
+```{r}
+# Write your code here
+t.test(dataset_1, dataset_2)
+```
+
+
+```{r}
+#These datasets are significantly different with a p-value of 0.03892. They were generated using a normal (Gaussian) because a t-test requires them to both be the same, but they were generated y=using different parameters according to the t-test.
+```
+
+6. Would you be surprised  if I told you that the data was in fact both were generated using the following method? Do you think it's possible? Why?
+
+```
+rnorm(25, 10, 1)
+```
+
+```{r}
+#I would be be surprised because the t-test showed significant difference between the two data sets. The parameters could include the same sample size and mean, but the second data set might have a larger standard deviation of 2.
+
+```
+
+
+7. What is the most appropriate observed statistic we should use to compare the two samples using permutation?
+
+```{r}
+#You would use the difference of means as your observed statistic. The equivalent of running a non-parametric t-test is a permutation. 
+```
+
+Create a function named diff_between_means that calculates and returns the difference between the means of two given samples, `s1` and `s2`.
+
+Function Usage:
+```
+diff_between_means(s1, s2)
+```
+
+for example 
+```
+diff_between_means(s1=c(1, 2, 3), s2=c(1, 2, 3))
+```
+
+the function should return 0. This is because both samples have the same mean, so the difference is 0.
+and 
+```
+diff_between_means(s1=c(3, 3, 3), s2=c(1, 1, 1))
+```
+the function should return 2. The difference between their means is 3 - 1 = 2.
+
+```{r}
+# Write your function here
+diff_between_means <- function(s1, s2){
+  mean(s1) - mean(s2)
+}
+#testing the function according to parameters given above, should return 0
+diff_between_means(s1=c(1, 2, 3), s2=c(1, 2, 3))
+#testing the function according to parameters given above, should return 2
+diff_between_means(s1=c(3, 3, 3), s2=c(1, 1, 1))
+```
+
+Remember our discussion about the importance of testing functions. I emphasized the use of assertions to make sure the functions we implement do what they are intended to do. For your convenience, I've written some assertions for the `diff_between_means` function. To test your function, you need to first install the `testit` package if you haven't already, 
+
+install.packages("testit")
+
+After defining your diff_between_means function, execute the provided assertions to verfiy if function works as expected.
+
+```{r}
+library(testit)
+#if it doesnt like it, it will complain and return an error.
+assert(
+    diff_between_means(s1=c(1, 2, 3), s2=c(1, 2, 3)) == 0     
+)
+assert(
+    diff_between_means(s1=c(3, 3, 3), s2=c(1, 1, 1))  == 2    
+)
+# IT
+```
+
+In class, we learned about a method called the permutation test. Here's a breakdown of what it does:
+
+1. Combine the Datasets:
+   If:
+   s1 <- c(1, 2, 3, 4)
+   s2 <- c(5, 6)
+   Then, combined:
+   s <- c(1, 2, 3, 4, 5, 6)
+
+2. Shuffle the combined set, so s_shuffled  may become c(6,1,4,5,3,2)
+
+3. Split the Shuffled Set:
+   Using our shuffled list, we are required to split in two sets of sizes equal to s1 and s2. 
+   s1_new becomes c(6,1,4,5)
+   s2_new becomes c(3,2)
+
+4. Calculate the Difference:
+    mean(s1_new) - mean(s2_new) will be 2.5
+
+Repeat these steps multiple times (e.g., 1000) to get a list of all differences.
+
+I am providing a function called `bootstrap_null`, which automates the above steps. Since you alredy wrote a function to accomplish step 4, `bootstrap_null` will use the function you wrote earlier, showcasing function reusability one of the many advantages of using functions.
+
+You us `bootstrap_null` as follows
+```
+bootstrap_null(n, s1, s2)
+```
+Where:
+- n: Number of repetitions
+- s1: First sample
+- s2: Second sample
+
+```{r}
+bootstrap_null <- function(n, s1, s2){
+    diff_means <-  1:n
+    for (i in 1:n){
+        s <- c(s1, s2)
+        s_shuffled <- sample(s)
+        s1_new <- s_shuffled[1:length(s1)]
+        s2_new <- s_shuffled[(length(s1) + 1):length(s)]
+        diff_means[i] <-  mean(s1_new) - mean(s2_new)
+    }
+    diff_means
+}
+```
+
+9. Execute the function using `n = 1,000` and the `dataset_1` and `dataset_2` from question 5. Store the results in a variable called `perm_diff_means`
+
+```{r}
+# Write you code here
+perm_diff_means <- bootstrap_null(n=1000, s1=dataset_1, s2=dataset_1)
+```
+
+```{r}
+# this is an assert to make sure the function does indeed compute 10k means
+
+assert( 
+    length(perm_diff_means) == 1000
+)    
+```
+
+10. Visualize the distribution of mean differences obtained from the permutation test, as recorded in `perm_diff_means`.
+
+```{r}
+# Write your code here
+```
+
+```{r}
+# Write you code here
+```
+
+11. Contrast the observed statistic (the real difference in means between `dataset_1` and `dataset_2`) with the values from `perm_diff_means`. Does the permutation test align with the results from the t-test?
+
+```{r}
+# Write you answer here
+```
+

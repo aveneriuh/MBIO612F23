@@ -1,0 +1,771 @@
+```{r}
+library("BSDA")
+library(repr)
+options(repr.plot.width=12, repr.plot.height=6)
+```
+
+```{r}
+library(ggplot2)
+```
+
+### Data Types and Hypothesis Tests: continous Data
+
+* Some useful tests:
+
+| What you’re testing | Hypothesis Test | Description |
+|---------------------|-----------------|-------------|
+| Correlation between two continuous variables | Pearson’s correlation coefficient | Pearson’s correlation coefficient measures the strength and direction of the linear relationship between two continuous variables. |
+| One mean to reference value | 1-sample t-test | The 1-sample t-test evaluates whether the mean of a single sample is significantly different from a known or hypothesized reference value. |
+| Means for two groups | 2-sample t-test, paired t-test| The 2-sample t-test compares the means of two independent groups to see if they are statistically different, while the paired t-test is used when the observations are paired in some way (e.g., pre-treatment and post- treatment). |
+| Means for at least three groups | One-Way ANOVA, Two-Way ANOVA | One-Way ANOVA tests the means among three or more unrelated groups, while Two-Way ANOVA tests the effect of two independent variables on the mean of a dependent variable. |
+| Compare specific groups from ANOVA | Post hoc tests | Post hoc tests are conducted after ANOVA to make pairwise comparisons between group means while controlling for family-wise error rate. |
+| Shape of distribution | Distribution tests for continuous data | These tests assess whether the data follows a specific distribution such as normal or exponential, which is crucial for selecting appropriate statistical methods. |
+
+
+
+
+
+
+
+### Z-Test and T-Test
+* The t-test is used to determine whether there is a significant difference in the means of two groups, which may be related in certain features. For instance:  
+  * Is the expression level of a gene is significantly different at low versus high temperatures.
+  * Does a a new medication significantly raises or lowers blood pressure compared to a control or another treatment.
+
+* Conducting a t-test entails:
+  * Following a methodology very similar to that following using simulations.
+  * Prior to delving into the t-test, it's beneficial to understand the z-test.
+    * Unlike the z-test, the t-test is used when the population standard deviation is unknown
+
+Z-Test
+
+* The average expression of gene X in a normal coral is denoted by $\mu = 67.5$, with a standard deviation of $\sigma=9.5$.
+
+* You measure the expression of gene X in survivors of a heat wave and obtain the following values:
+```
+living_corals_temps <- c(50, 60, 60, 64, 66, 66, 67, 69, 70, 74, 76, 76, 77, 79, 79, 79, 81, 82, 82, 89)
+```
+
+```{r}
+living_corals_temps <- c(50, 60, 60, 64, 66, 66, 67, 69, 70, 74, 76, 76, 77, 79, 79, 79, 81, 82, 82, 89)
+```
+
+```{r}
+mean(living_corals_temps) -  67.5
+```
+
+# Z-Test: cont'd
+
+* We aim to determine if there is a significant difference between the means.
+
+* Test statistic: $\bar{X} - \mu$
+
+  * If the difference is very close to 0, it suggests that the data supports the null hypothesis.
+
+* If this quantity is significantly different than 0, then it suggests that the null hypothesis is less likely to be true.
+
+* The threshold for rejecting the null hypothesis `H0` depends on the chosen significance level (commonly 0.05) 
+
+
+
+
+* $X \sim \text{Normal}(\mu, \sigma)$
+
+![](https://www.dropbox.com/s/c17z427bv4p7s3l/gaussian%20example.png?dl=1)
+
+
+### Sampling Distribution of the Sample Mean
+
+* The Standard Error of the Mean (SEM) measures the precision with which a sample average estimates the population average.
+  * Simply put, it shows how much our sample mean might differ from the actual population mean.
+
+The sampling distribution of the sample mean (\(\bar{X}\)) is modeled as a normal distribution with mean \( \mu \) and variance (\(\text{SEM}^2\)):
+
+$$
+\bar{X} \sim \mathcal{N}(\mu, \text{SEM}^2)
+$$
+
+where,
+
+$
+\text{SEM} = \frac{\sigma}{\sqrt{n}}
+$
+
+In this formula, \( \sigma \) represents the population standard deviation, and \( n \) is the sample size.
+
+
+### Standard Error of \( \bar{X} \)
+
+* Under the null hypothesis, the sampling distribution of the sample mean can be represented as:
+
+To standardize the sample mean \( \bar{X} \), we can convert it into a z-score:
+
+$$
+z_{\bar{X}} = \frac{\bar{X} - \mu}{SE(\bar{X})}
+$$
+
+* This z-score is our test statistic.
+  * The z-score follows a standard normal distribution:
+
+$$
+z_{\bar{X}} \sim \text{Normal}(0, 1)
+$$
+
+### When Do We Reject the Null? 
+
+![](https://www.dropbox.com/s/uae9otpdwe0ynto/one_two_test.png?dl=1)
+
+```{r}
+sample_mean = mean(living_corals_temps)
+
+mu_null = 67.5
+sd_true = 9.5
+```
+
+```{r}
+N = length(living_corals_temps)
+sem = sd_true / sqrt(N)
+z_score = (sample_mean - mu_null) / sem
+z_score
+```
+
+```{r}
+upper_area = pnorm(z_score, lower.tail = FALSE )
+upper_area
+```
+
+```{r}
+result <- z.test(living_corals_temps, mu = mu_null, sigma.x = sd_true, alternative = "greater")
+result
+```
+
+```{r}
+upper_area = pnorm( z_score, lower.tail = FALSE )
+lower_area = pnorm( q = -z_score, lower.tail = TRUE )
+p_value = lower_area + upper_area
+p_value
+```
+
+```{r}
+z.test(living_corals_temps, mu = mu_null, sigma.x = sd_true, alternative = "two.sided")
+```
+
+### Assumptions of the z-test
+
+* The data comes from a normally distributed population.
+
+* Data points are independent of each other.
+
+* Population standard deviation is known and used in the test.
+
+### One Sample t-Test
+
+* When we don't know the population's standard deviation ($\sigma$):
+  * Adjustments are made because of the uncertainty about the actual population standard deviation.
+* If our null hypothesis suggests the true mean is $\mu$ and our sample has a mean of $\bar{X}$ with an estimated population standard deviation of $\hat{\sigma}$, then the $t$ statistic is:
+
+$$
+t = \frac{\bar{X} - \mu}{\hat{\sigma} /\sqrt{N}},
+$$
+
+where $\hat{\sigma}$ represents the sample standard deviation, used as an estimate for the population standard deviation. 
+
+* The sampling distribution follows a $\text{t-distribution}$ with $N -1$ degrees of freedom (df).
+  * A $\text{t-distribution}$ looks similar to the Gaussian.
+    * $\text{t-distribution}$ is a bit shorter and wider, especially when based on small sample sizes.
+    * As we get more data, the t-distribution starts to look more and more like the regular bell curve.
+
+```{r}
+x <- seq(-4, 4, by = 0.01)
+
+# Compute the densities for the Gaussian and t-distribution
+df_normal <- data.frame(x = x, y = dnorm(x))
+df_t <- data.frame(x = x, y = dt(x, df=5)) # using 5 degrees of freedom as an example
+
+# Plotting both distributions using ggplot2
+ggplot() +
+  geom_line(data=df_normal, aes(x=x, y=y, color="Normal Distribution"), linewidth=1) +
+  geom_line(data=df_t, aes(x=x, y=y, color="t-Distribution (5 df)"), linewidth=1) +
+  labs(title="Comparison of Normal and t-Distribution",
+       x="Value", y="Density", color="Distribution") +
+  theme_minimal()
+```
+
+### Independent Samples t-Test (Student's t-Test)
+
+* Compares means from two separate sets of continuous values.
+  
+  * Null Hypothesis ($H_0$): $\mu_1 = \mu_2$
+  * Alternative Hypothesis ($H_a$): $\mu_1 \ne \mu_2$
+
+![Comparison of Two Independent Samples](https://www.dropbox.com/s/b4gmvnol70hc9w6/independent.png?dl=1)
+
+### Independent Samples t-Test: Assumptions and Computations
+
+* **Assumption**: Both groups have equal population standard deviations.
+  $$ \sigma_1 = \sigma_2 = \sigma $$
+
+* Pooled Standard Deviation: A weighted average of the standard deviations from both samples. It's used because we assume both groups come from populations with the same standard deviation.
+  * To compute the standard error of the difference between means:
+  $$ SE(\bar{X_1} - \bar{X_2}) = \sqrt{\frac{\hat{\sigma}^2}{N_1} + \frac{\hat{\sigma}^2}{N_2}} $$
+
+* t-Statistic Calculation: This measures how different the sample means are, in terms of the estimated standard error.
+  $$ t = \frac{\bar{X_1} - \bar{X_2}}{SE(\bar{X_1} - \bar{X_2})} $$
+
+* the pooled standard deviation ($\hat{\sigma}$) is
+
+$$
+  \hat{\sigma} = \sqrt{\frac{(N_1 - 1) \times s_1^2 + (N_2 - 1) \times s_2^2}{N_1 + N_2 - 2}}
+$$
+
+
+* Degrees of Freedom: When using this test statistic, the sampling distribution follows a t-distribution with $N_1 + N_2 - 2$ degrees of freedom.
+
+### Assumptions of the Test
+
+1. Normality: The data should be approximately normally distributed.
+  
+2. Independence: The data points are independent of each other.
+
+3. Homogeneity of Variance (Homoscedasticity):
+   * Both groups have the same variance in the population.
+  
+
+* In real-world data, it's uncommon for both groups to have the same standard deviation.
+  * If two groups have different means, it's reasonable to question if they would also have different standard deviations.
+
+* Relaxing the Assumption:
+   * Some tests don't require assuming equal variances.
+   * In such cases, the primary assumptions are just normality and independence.
+
+
+
+```{r}
+set.seed(123)
+sample1 <- rnorm(20, mean = 5, sd = 2)
+sample2 <- rnorm(30, mean = 7, sd = 2)
+
+
+
+test_result <- t.test(sample1, sample2, var.equal = TRUE)
+
+test_result
+```
+
+```{r}
+
+# We can manually compute the t-statistic
+
+pooled_sd <- sqrt(((length(sample1) - 1) * var(sample1) + (length(sample2) - 1) * var(sample2)) / 
+                  (length(sample1) + length(sample2) - 2))
+
+SE_diff <- pooled_sd * sqrt(1/length(sample1) + 1/length(sample2))
+
+t_stat_manual <- (mean(sample1) - mean(sample2)) / SE_diff
+
+t_stat_manual
+```
+
+```{r}
+df <- length(sample1) + length(sample2) - 2
+p_value_one_tailed_right <- pt(t_stat_manual, df)
+p_value <- 2 * p_value_one_tailed_right
+p_value
+```
+
+### Checking the Normality of the Data
+
+* To visually inspect if your data is normally distributed, you can use $QQ$ plots.
+  * A graphical tool to help us assess if a dataset follows a certain theoretical
+  * 
+* For a formal statistical test of normality, you can use the Shapiro-Wilk test.
+* The result of the Shapiro-Wilk test gives a test statistic, commonly referred to as `W`.
+
+
+```{r}
+normal_data = rnorm(100, 3, 2.2)
+```
+
+
+
+```{r}
+qqnorm(normal_data, main="Q-Q Plot of normal_data") # plots the Q-Q plot
+qqline(normal_data, col="red")  # add the line
+```
+
+```{r}
+shapiro.test(normal_data)
+```
+
+```{r}
+non_normal_data = rpois(100, 3)
+shapiro.test(non_normal_data)
+```
+
+### Understanding Degrees of Freedom
+
+* The concept of Degrees of Freedom (DF) refers to the number of independent values in an analysis that can change without violating any constraints.
+  * It represents the number of values that have the freedom to vary when estimating statistical parameters.
+  * In many analyses, the degrees of freedom is calculated as the sample size minus the number of parameters being estimated. It's typically a positive integer.
+
+* This concept is fundamental in parametric hypothesis testing and helps in understanding the distribution and properties of test statistics.
+
+* Degrees of freedom is an essential but slippery idea that appears in all parametric hypothesis tests.
+
+### Exmaples of Degrees of Freedom
+
+* When calculating the variance or standard deviation for a sample of size n, the degrees of freedom is n-1.
+  * If you know the mean of these numbers and the first `n-1` differences from the mean, you can determine the last difference.
+  * Only n-1 of the differences are free to vary independently without breaking the constraint of a given mean
+
+* When comparing a sample mean to a known value, the degrees of freedom are: `DF = n - 1`
+  This is due to the calculation of the sample variance.
+
+* When comparing means from two different samples, the degrees of freedom is: ` DF = n1 + n2 - 2`
+  * Here, (n1 - 1) comes from the variance of the first sample, and (n2 - 1) from the variance of the second sample.
+  
+
+### Degrees of Freedom and Probability  Distributions 
+
+* For parametric tests, degrees of freedom also define the probability distributions for the test statistics of various hypothesis tests. 
+  * ex. degrees of freedom define the shape t-distribution, F-distribution, and the chi-square
+
+### $\chi^2$ Goodness-of-Fit Test
+
+- The $\chi^2$ goodness-of-fit test is a well-established method for testing hypotheses on categorical data.
+
+- Categorical data is data that can be categorized into distinct groups but doesn't have a natural order or numeric significance. This is often referred to as data on a "nominal scale".
+
+### Testing Randomness of Card Suit Choices
+
+- Suppose you show 200 people a card suit, say heart, then ask them to pick a card suit. The objective is to determine whether their choices are genuinely random.
+  - Specifically, the question is whether the choice of the second card suit is truly random (with a uniform probability distribution).
+
+Note: Handling `.RData` Files in R
+  - `.RData` files essentially save your R workspace.
+  - To save your current workspace into an `.RData` file, use: `save.image(file="filename.RData")`.
+  - To load data from an `.RData` file back into your R workspace, use: `load(file="filename.RData")`.
+
+```{r}
+load("data/randomness.Rdata")
+head(cards)
+```
+
+```{r}
+observed <- table( cards$choice)
+observed
+```
+
+### Reproducing Similar Data in R
+
+- Let's consider observed frequencies represented by $O = (O_1, O_2, O_3, O_4) = (68, 44, 41, 47)$.
+- To simulate or reproduce data similar to these observed frequencies in R, a few questions arise:
+
+  1. What probability distribution best represents this data?
+  
+  2. How do we effectively sample from this distribution in R?
+
+- Note that the concept here is analogous to a generalized version of a coin flip.
+  * With a coin, there are two outcomes, but in our scenario, there are four potential outcomes represented by the four observed frequencies.
+    
+
+```{r}
+n = 1
+size = 200
+prob = c(1/4, 1/4, 1/4, 1/4)
+rmultinom(n, size, prob)
+```
+
+### Pearson’s \( \chi^2 \) Goodness of Fit Test
+
+- The goal is to assess if the cards (or species or any other counts) are uniformly represented.
+
+  * Null Hypothesis: ($ H_0 $): All four suits are chosen with an equal probability of $ p=0.25 $.
+
+  * Alternative Hypothesis: ($ H_A $): At least one suit has a choice probability different from $ p=0.25 $.
+
+- How do we test these hypotheses?
+
+  1. Begin with a sample where the card choices are uniformly represented.
+  
+  2. Calculate a test statistic based on observed data.
+  
+  3. Compare the observed statistic to what we would expect under the null hypothesis.
+
+      - This comparison helps in determining the location of our observed statistic.
+  
+  4. Based on this comparison, compute a p-value to assess the significance of our observed statistic.
+
+- The approach outlined is precisely what the $ \chi^2 $ goodness of fit test does.
+
+  * Null Hypothesis: The probabilities are $ P = (0.25, 0.25, 0.25, 0.25) $.
+  * Alternative Hypothesis: The probabilities are not $ P = (0.25, 0.25, 0.25, 0.25) $.
+  
+
+### Goodness of Fit Test Statistic
+
+- To assess how well our observed data align with our expectations under the null hypothesis, we employ the "goodness of fit" test statistic.
+
+  - This test statistic essentially measures the degree of divergence between the observed data and what we'd predict under \( H_0 \).
+
+  - A significant difference between these sets of values suggests that the observed data might not adhere to the null hypothesis.
+
+- Key Question: What are the expected frequencies under our null hypothesis?
+  
+  - These expected frequencies serve as a baseline to which we compare our observed data.
+  - The closer our data is to these expected frequencies, the more it supports the null hypothesis.
+
+```{r}
+### What is this called in R?
+probabilities <- c(clubs = .25, diamonds = .25, hearts = .25, spades = .25)
+probabilities
+```
+
+```{r}
+expected= 200 * probabilities
+expected
+```
+
+### Calculating the Test Statistic
+
+Objective: Our primary aim is to compare the observed values in each category with their respective expected values (Ei).
+
+![Observed vs Expected](https://www.dropbox.com/s/61z3mx4g33qrq19/obs_exp.png?dl=1)
+
+- Differences in observed and expected values provide insight. But simply tallying up these differences can be misleading. Why?
+
+  - For instance, having +14 more hearts and -15 fewer clubs is essentially the same magnitude of discrepancy as -14 hearts and +15 clubs.
+    * The sign of the difference, in this context, is not as informative as the magnitude of the difference.
+
+- Solution: Square the differences. This way, negative and positive discrepancies are treated equally.
+
+- However, it's not just about the magnitude. We need to understand the difference in the context of what was expected:
+
+  - For instance, a discrepancy of +14 in a context where 1000 was expected is different from a discrepancy of +14 where only 50 was expected.
+
+- By dividing the squared difference by the expected value, we normalize the discrepancy, making it relative to the expected count. The total test statistic is then the sum of all these normalized discrepancies.
+
+```{r}
+observed
+```
+
+```{r}
+observed - expected
+```
+
+```{r}
+(observed - expected)^2 / expected
+```
+
+```{r}
+sum((observed - expected)^2 / expected)
+```
+
+### The \(\chi^2\) Statistic
+
+* The computation we performed earlier yields the \(\chi^2\) statistic, defined as:
+
+$$
+\chi^2 = \sum_{i=1}^{k} \frac{(O_i - E_i)^2}{E_i}
+$$
+
+* Here, $k$ represents the number of categories.
+
+* This metric essentially measures the distance between the observed and expected values. A couple of observations can be made:
+
+  - A small $\chi^2$ value suggests that the observed $O_i$ and expected $E_i$ values are in close agreement, giving credence to the null hypothesis.
+  
+  - On the other hand, a large $\chi^2$ indicates significant divergence between $O_i$ and $E_i$. This discrepancy points towards the alternative hypothesis — that the observed values likely didn't arise from the expected distribution (in our case, uniform).
+
+* A lingering question: How do we interpret a $\chi^2$ value? For instance, is $\chi^2 = 9$ considered large or small in the context of our test?
+
+### Sampling Distribution of the GOF Statistic
+
+* We want to determine the expected distribution of $\chi^2$ values when drawing random samples from a uniform distribution. 
+  * Essentially, we're inquiring about the shape and characteristics of the sampling distribution of $\chi^2$.
+
+* Remember, the observed frequency, $O_i$, for any given category $i$, is binomially distributed:
+$$
+O_i \sim \text{Binomial}(P_i, N)
+$$
+
+* When $N$ is large, and provided $P_i$ isn't extremely close to 0 or 1, the Central Limit Theorem (CLT) comes into play.
+  * The CLT tells us that the distribution of $O_i$ starts to resemble a Gaussian (or normal) distribution.
+
+```{r}
+N = 200
+p = 0.4
+
+```
+
+```{r}
+x_axis = c(50:115)
+y_axis = dbinom(x_axis, N, p)
+
+ggplot() +
+ geom_line(aes(x_axis, y_axis))
+```
+
+### Transitioning from Gaussian to $\chi^2$ Distribution:
+
+- Expected Frequency $E_i$: Represents the number of times an event is expected to occur.
+    Formula: $E_i = N \times P_i$
+    where:
+    $P_i$ = Probability of the event in category $i$
+    $N$ = Total number of observations
+
+- Observed Frequency $O_i$: Actual number of times an event occurs in the sample.
+
+
+* Gaussian Distribution of Frequencies: For large sample size $N$, and when $P_i$ isn't too close to 0 or 1:
+   * $O_i$ will tend to follow a Gaussian (normal) distribution.
+
+1. The standardized difference between observed and expected frequencies is $\frac{(O_i - E_i)}{\sqrt{E_i}}$
+
+2. When summing up squared values of these standardized differences across all categories:
+    $$\chi^2 = \sum_{i=1}^{k} \frac{(E_i - O_i)^2}{E_i}$$
+
+### Degrees of Freedom in the \(\chi^2\) Distribution:
+
+* If you collect a set of variables that are normally distributed, and you square each of their values and then sum them, the resulting value will follow a $\chi^2$ distribution.
+
+* For this $\chi^2$ distribution, if you summed up $k$ squared values, the degrees of freedom (df) would be $k-1$.
+
+* The reason for subtracting one (making it $k-1$) is the constraint that comes from the total counts. 
+    - If you know the counts for $k-1$ categories, you can always deduce the count for the $k$th category to ensure the total remains consistent.
+    - This means only $k-1$ categories are truly independent.
+
+2. While the term "degrees of freedom" is used frequently, it's a nuanced concept. In more complex scenarios, degrees of freedom might not always be a simple whole number.
+
+### $\chi^2$ Distribution:
+
+1. The sum of squared standardized normally distributed variables leads to a $\chi^2$ distribution.
+2. This distribution is often used to represent errors.
+3. The main parameter of a $\chi^2$ distribution is its degrees of freedom (df).
+
+```{r}
+rchisq(5, df=3)
+```
+
+```{r}
+rchisq(5, df=100)
+```
+
+```{r}
+x_axis = seq(0, 40, 0.1)
+y_axis = dchisq(x_axis, df=10)
+
+ggplot() +
+ geom_line(aes(x_axis, y_axis))
+```
+
+```{r}
+x_axis = seq(0, 20, 0.1)
+y_axis = dchisq(x_axis, df=3)
+
+ggplot() +
+ geom_line(aes(x_axis, y_axis))
+```
+
+### Cumulative Density Function (CDF):
+
+* `pchisq` is analogous to functions like `pnorm` or `ppois`, and it returns the value of the cumulative density function (CDF) for a chi-square distribution.
+
+* In this function:
+   - `x` is the random variable.
+   - `df` is the degrees of freedom, a parameter essential for the \(\chi^2\) distribution.
+
+Usage:
+------
+```R
+pchisq(x, df=m)
+```
+
+```{r}
+x_axis = seq(0, 20, 0.1)
+y_axis = dchisq(x_axis, df=3)
+
+ggplot() +
+ geom_line(aes(x_axis, y_axis))
+```
+
+```{r}
+pchisq(0, df=3)
+```
+
+```{r}
+pchisq(20, df=3)
+```
+
+```{r}
+# Give me the area under the upper tail instead
+pchisq(9, df=3, lower.tail = FALSE)
+```
+
+```{r}
+observed
+```
+
+```{r}
+observed
+```
+
+```{r}
+# using R's chisq.test
+print(observed)
+chisq.test( x = observed, p = c(.25, .25, .25, .25) )
+```
+
+```{r}
+# using R's chisq.test
+print(observed)
+chisq.test( x = observed)
+```
+
+### $\chi^2$ Test of Independence (or Association):
+
+* Consider a scenario where we want to investigate the influence of a site on the growth status of certain species.
+
+* Two sites, A and B, are chosen. Species are introduced to these sites and we then observe:
+   - If the species thrives and is healthy.
+   - If the species dies.
+   - If the species lives but is in poor health.
+
+* Important Observations:
+   - Our data is categorical in nature.
+     - Specifically, we're observing two categories: the site (A or B) and the growth status (healthy, dead, unhealthy).
+   - The data we collect are counts of how many species fall into each combination of site and health status.
+   - Our primary objective is to determine if there's an association or dependence between the site and the health status of the species.
+
+( The results of this experiment are saved in a file named `experiment.csv`.
+
+```{r}
+data = read.csv("data/experiment.csv")
+head(data)
+```
+
+```{r}
+data <- subset(data, select=-EntryID)
+```
+
+```{r}
+freqs <- xtabs(~condition + site, data)
+freqs
+```
+
+Analyzing Data Distribution Across Sites A and B:
+
+1. The dataset consists of 180 animal entries, divided between two sites.
+   - Site A: 87 entries.
+   - Site B: 93 entries.
+
+![Image showing distribution](https://www.dropbox.com/s/q2i36mlphpyel3w/xtab.png?dl=1)
+
+* Our primary aim is to examine if the distribution of the health status of animals is consistent across both sites. Specifically:
+   - Is the site (either A or B) independent of the animal's health status?
+   - Are the proportions of animals that 'live', 'die', or are 'unhealthy' similar for both Site A and Site B?
+
+### Explaining the Hypothesis Test
+
+![](https://www.dropbox.com/s/7nl9nnq8gpyattp/xtab_generic.png?dl=1)
+
+* $O_{ij}$ represents the count of people observed at a location (either siteA or siteB) experiencing condition i (like living, dying, or being unhealthy).
+* N is the overall count of observations.
+* $R_i$ represents the total counts for each row.
+* $C_j$ represents the total counts for each column.
+
+### Understanding the Hypothesis Test
+
+* If outcomes from both sites are identical:
+  * The chance of dying is the same at both sites.
+  * Similarly, the chance of being healthy is the same.
+  * Likewise, the chance of living is also the same at both sites.
+
+* $H_0$ (Null Hypothesis): The following hold true:
+    *  $P_{11}$ = $P_{12}$ (equal chance of dying),
+    *  $P_{21}$ = $P_{22}$ (equal chance of being unhealthy),
+    *  $P_{31}$ = $P_{32}$ (equal chance of living).
+    
+* We use $p_i$ for $i$ in {1,2,3} to represent the chance of dying, being unhealthy, or living respectively, in either site.
+
+### Understanding the Test Statistic
+
+* In contrast to the goodness of fit test, the null hypothesis doesn't set a specific value for $p_i$.
+  * We can derive this value from the data.
+  * For example, if 28 out of 180 species live, then the observed probability is 28/180 (or 0.16).
+
+$$
+\hat{P}_i = \frac{R_i}{N}
+$$
+
+The calculated expected frequency is:
+$$
+\hat{E}_{ij} = \frac{R_i \times C_j}{N}
+$$
+
+### Understanding the Test Statistic
+
+* We're using the same approach as in the goodness of fit test.
+  * It's the same statistic.
+
+For a table with 'r' rows and 'c' columns, our $\chi^2$ statistic is given by:
+
+$$
+\chi^2 = \sum_{i=1}^{r}\sum_{j=1}^{c}\frac{(E_{ij}-O_{ij})^2}{E_{ij}}
+$$
+
+* Just as mentioned, this statistic follows the χ² distribution.
+
+* What's the count of independent data points we're considering?
+
+  * Here, degrees of freedom `DF = (r-1)(c-1)`.
+
+  * We don't need the exact values from one specific row and one specific column.
+
+### Breaking Down the Test Assumptions
+
+* We assume that the expected frequencies are big enough.
+  * Ideally, expected frequencies should be more than 5.
+  * For bigger tables, around 80% of these frequencies should exceed 5, and none should be 0.
+
+* Data entries are not dependent on each other.
+  * For instance, if one species dies, it doesn't impact the likelihood of another species dying.
+
+```{r}
+freqs
+```
+
+```{r}
+chisq.test( freqs )
+```
+
+```{r}
+row_totals <- rowSums(freqs)
+row_totals
+```
+
+```{r}
+col_totals <- colSums(freqs)
+col_totals
+```
+
+```{r}
+grand_total <- sum(freqs)
+grand_total
+```
+
+```{r}
+expected <- outer(row_totals, col_totals) / grand_total
+expected
+```
+
+```{r}
+chi_squared <- sum((freqs - expected)^2 / expected)
+chi_squared
+```
+
+```{r}
+p_value <- 1 - pchisq(chi_squared, df=2)
+p_value
+```
+

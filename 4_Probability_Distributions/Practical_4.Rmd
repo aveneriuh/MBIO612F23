@@ -56,10 +56,11 @@ Plot a Kernel Density Estimation (geom_density plot) to visualize the distributi
 ```{r}
 ### Write your code here
 ggplot(combinedAB, aes(x = Algal_Density, fill = Location)) +
-  geom_density(alpha = 0.5) +
+  geom_density(alpha = 0.5, adjust=1.5) +
   labs(x = "Algal Density", y = "Density Estimate") +
   ggtitle("Kernel Density Estimation of Algal Densities in Locations A and B") +
-  scale_fill_manual(values = c("Location A" = "blue", "Location B" = "red"))
+  scale_fill_manual(values = c("Location A" = "blue", "Location B" = "red"))+
+  xlim(120, 300)
 
 ```
 
@@ -95,9 +96,10 @@ Utilize a Poisson distribution to calculate the probability of observing exactly
 #poission for 5 occurrences
 dpois(5, 3)
 
-#poission for 3 occurrences
+#poission for less than 3 occurrences
 sum(dpois(0:3, 3))
 #or ppois(3, 3)
+#ppois(3,3, lower.tail=FALSE)
 ```
 
 ### Q5: 
