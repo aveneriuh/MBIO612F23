@@ -1,0 +1,138 @@
+---
+title: An R Markdown document converted from "in_class_pracitcal_regression.ipynb"
+output: html_document
+---
+
+```{r}
+library(testit)
+```
+
+### Using Multiple Linear Regression
+
+The data in the file "RIKZ.txt," available in the data folder, was collected to study the relationship between various abiotic factors (e.g., sediment composition, slope of the beach) and how they might affect benthic fauna. Mulder (2000) detailed the outcomes of a pilot study examining the impact of variations in slope and grain size on fauna in the coastal zone.
+
+Janssen, G.M., Mulder, S., Zuur, A.F., Ieno, E.N., and Smith, G.M.
+
+
+Q1. Load the data into a variable named survey_data.
+
+Load the tab-delimited file  into a data_frame called `survey_data` and  display the first 6 lines of the tables
+
+```{r}
+a <- 1
+```
+
+
+```{r}
+# write your code here
+survey_data <- read.csv("./RIKZ.txt", sep = "\t")
+head(survey_data)
+```
+
+Q2. In the dataset, columns labeled C1, P1-P23, P25 P24 (no P23), N1, CR1-28, M1-12, M14-17 (No M13), and I1-5 hold the count data for 77 species, categorized under five distinct taxa: Chaetognatha (C), Polychaeta (P), Crustacea (CR), Mollusca (M), and Insecta (I). Our analysis focuses on assessing species richness within these groups, defined as the presence (1) or absence (0) of species based on the count values (> 0 indicating presence).
+
+Your task is to create a new column named 'richness' in the dataset, quantifying the species richness for each individual observation based on the criteria mentioned above. For instance, the richness for the first sample should be computed as 11, considering it records non-zero counts exclusively for the following groups: `'C1', 'P6', 'P15', 'P16', 'P25', 'CR1', 'CR14', 'CR15', 'CR19', 'CR26', and 'I3'.`
+
+To streamline the process, particularly given the sequential naming convention of the columns, you are encouraged to write a function that, given a specific species taxa character (e.g., 'P') and the starting as well as ending indices, returns a string vector of the column names corresponding to that species' range. For example:
+
+```
+add_sequential_cols(prefix='P', range_start=1, range_end=3)
+```
+
+returnc `c('P1', 'P2', 'P3')`
+
+```{r}
+#IN CLASS WORK
+#how to access the first row/data entry
+survey_data[1, ] #leaving it blank means youre accessing all of the columns
+good_col <- which(survey_data[1, 2:76] > 0) #shows the values that are greater than 0
+#how to sum the rows of the entire dataset
+rowSums(survey_data[ , 2:76] > 0)
+```
+
+```{r}
+# write your code here
+example_cols = c('C1', 'P6', 'P15', 'P16', 'P25', 'CR1', 'CR14', 'CR15', 'CR19', 'CR26', 'I3')
+survey_data[1, example_cols]
+```
+
+```{r}
+add_sequential_cols <- function(prefix, range_start, range_end) {
+  cols <- c()
+  for (i in range_start:range_end) {
+    cols <- c(cols, paste0(prefix, i))
+  }
+  return(cols)
+}
+
+C_cols <- "C1" # Since there's only C1
+P_cols <- add_sequential_cols("P", 1, 25)
+
+N_col <- "N1" # Since there's only N1
+CR_cols <- add_sequential_cols("CR", 1, 28)
+M_cols <- add_sequential_cols("M", 1, 17)
+I_cols <- add_sequential_cols("I", 1, 5)
+
+all_cols <- c(C_cols, P_cols, N_col, CR_cols, M_cols, I_cols)
+all_cols <- all_cols[-which(all_cols == 'P23' | all_cols == 'M13')]
+```
+
+```{r}
+# library(testit)
+assert(
+    length(all_cols) == 75
+)
+```
+
+```{r}
+survey_data_subset <- survey_data[, all_cols]
+head(survey_data_subset)
+```
+
+```{r}
+length(rowSums(survey_data_subset > 0))
+```
+
+```{r}
+nrow(survey_data_subset)
+```
+
+```{r}
+survey_data$richness <- rowSums(survey_data_subset > 0)
+```
+
+```{r}
+survey_data$richness
+```
+
+Q4. 
+Generate a new dataset from survey_data, excluding the columns C1, P1-P25, N1, CR1-28, M1-17, and I1-5. Name this new dataset survey_data_richness.
+
+
+```{r}
+survey_data_richness <- survey_data[, -(2:77)]
+```
+
+Q5. 
+Use the lm() function to build model predicting richness based on the remaining variables. Before executing lm(),  review of the variables. Are there any that you should consider excluding from your model, and if so, why?    
+
+```{r}
+survey_data_richness <- survey_data_richness[, -1]
+```
+
+```{r}
+model <- lm(richness ~ ., data = survey_data_richness)
+
+# Summary of the model to check the results
+summary(model)
+```
+
+Q6. What do the various output of the lm mean? Interpret the results of your model.
+
+
+```{r}
+mean(survey_data_richness$richness)
+```
+
+Q7. Why did we remove the count for all species before building the model
+

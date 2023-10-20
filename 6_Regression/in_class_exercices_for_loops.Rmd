@@ -1,0 +1,166 @@
+---
+title: An R Markdown document converted from "in_class_exercices_for_loops.ipynb"
+output: html_document
+---
+
+A 'for' loop in R is used to automate and repeat a task multiple times. It is a fundamental concept in programming, 
+especially when you have a block of code that you want to execute repeatedly for different values.
+
+Basic Structure:
+
+for (item in list_of_items) {
+    Inside this block, you can refer to 'item' to access the current element of 'list_of_items'
+    do_something(item)
+}
+
+Here's a practical example:
+
+Suppose you have a vector of numbers and you want to print each one squared:
+
+```{r}
+numbers <- c(1, 2, 3, 4, 5)
+for (num in numbers) {
+    squared <- num * num
+    print(squared)
+}
+```
+
+The above code will print the square of each number in the 'numbers' vector, one by one.
+
+A couple of things to note:
+
+The 'for' loop will iterate over each item in 'list_of_items' from the start to the end.
+During each iteration, the loop assigns the current item to the variable 'item' and then executes the code inside the loop.
+You can use the 'item' variable inside the loop to refer to the current item and perform operations on it.
+
+### Question 1
+
+Given a vector called `test_values` defined as follows:
+
+```{r}
+test_values <- c("Honolulu", "Los Angeles", "San Francisco", "New York")
+```
+Your task is to write a for loop that displays the position (or index) of each city in the vector followed by its name.
+
+The output of your code should be
+
+```bash
+"1 Honolulu"
+"2 Los Angeles"
+"3 San Francisco"
+"4 New York"
+```
+
+```{r}
+for (i in c(1,2,3,4)){
+   position <- (paste(i, test_values[i]))
+    print(position)
+}
+```
+
+### Question 2
+
+You're given a vector named test_values:
+
+```{r}
+test_values <- c("New York", "Los Angeles", "San Francisco", "Honolulu")
+```
+Write a for loop to display the index of each city in the vector followed by a substring of the city's name. The substring should have a length equal to the index.
+
+Expected output:
+
+```bash
+Copy code
+1 N 
+2 Lo
+3 San
+4 Hono
+```
+
+Hint: Use the substr() function to extract a substring. Here's how it works:
+
+```{r}
+city_name <- "Honolulu"
+substr(city_name, start=1, stop=3)  # This will output "Hon"
+```
+
+```{r}
+for (i in 1:4) {
+    print(paste(i, (substr(test_values[i], start=1, stop=i))))
+}
+```
+
+### Question 3
+Without executing the code. What does the following code print?
+```
+my_data <- c(1,2,3,4,5)
+for (my_val in my_data){
+    print(my_data)
+}
+```
+
+This will print:
+
+1, 2, 3, 4, 5
+1, 2, 3, 4, 5
+1, 2, 3, 4, 5
+1, 2, 3, 4, 5
+1, 2, 3, 4, 5
+
+It essentially prints then entire "my_data" vector for every value in my_data.
+
+### Question 4
+
+Given the vector values:
+
+```{r}
+values <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+```
+
+
+Create a for loop to calculate the product of all the even numbers within this vector.
+
+
+```{r}
+accumulator <- 0
+for (i in seq(2, 10, 2)) {
+   accumulator <- values[i] + accumulator #take every other value in the sequence from position 2:10
+   print(accumulator)
+}
+```
+
+### Question 5
+You have a vector of numbers:
+
+```{r}
+numbers <- c(1,2,3,4,5,6,7)
+```
+
+Create a for loop that multiplies each number with the previous ones and stores the result in a new vector called `products`.
+
+Example:
+
+For the first value in `products` (i.e., `products[1]`), the product is 1.
+For the second value (i.e., `products[2]`) is 1*2 = 2.
+For the third value (i.e., `products[3]`) is 1* 2* 3 = 6.
+Now, write the for loop to fill the products vector with the results for each number in numbers.
+
+```{r}
+#for storing in an accumulator
+products <- 1
+for (i in 1:length(numbers)) {
+    products <- products * numbers[i]
+    print(products)
+}
+```
+or
+```{r}
+#for storing in a vector
+prod <- 1:6 #6 because 1 - length of the vector being used
+for (i in 2:length(numbers)) { #2:7 because we want to start multiplication with the second value in numbers
+    prod[i] <- numbers[i] * prod[i-1]
+}
+prod
+```
+
+
