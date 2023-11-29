@@ -1,0 +1,200 @@
+---
+title: An R Markdown document converted from "advanced_r_practical.ipynb"
+output: html_document
+---
+
+```{r}
+library(magrittr)
+```
+
+### Exercise 1: For Loop and Apply Function
+
+Your task is to analyze water temperature data recorded over 16 consecutive days at five different sites. Follow these steps:
+
+1. Load the Data: 
+   * The data is stored in a file named `temperatures.RDS`.
+     * Use the `readRDS()` function to import the data.
+   - Assign the imported data to a variable named `temps`, ensuring it is a `data.frame`.
+
+```{r}
+temps <- readRDS("temperatures.RDS")
+```
+
+2. For Loop for Average Temperature:
+   - Write a `for` loop to calculate the average temperature observed during the 16 consecutive days at each site.
+   - The calculation should be done column-wise, i.e., for each site separately.
+
+```{r}
+avg_temp <- 1:5
+
+for (i in 1:5) {
+  print(avg_temps <- mean(temps[ ,i]))
+}
+
+#for (n in names(temps)) {
+#  print(mean(temps[ ,n]))
+#}
+```
+
+
+3. Apply Function for Summary Statistics:
+   - Utilize the `apply()` function to compute the  mean for each site.
+     - Ensure that the mean statistics are computed for each site individually.
+
+```{r}
+site_mean <- sapply(temps, mean)
+site_mean
+```
+
+
+# Execise 2: 
+
+Consider the following list, which contains a list of species for each genus of marine species.
+
+```{r}
+marine_species <- list(
+  Acropora = c("Acropora palmata", "Acropora millepora", "Acropora digitifera", 
+               "Acropora hyacinthus", "Acropora muricata", "Acropora nasuta", 
+               "Acropora aspera", "Acropora tenuis", "Acropora valida", 
+               "Acropora cervicornis"),
+
+  Carcharodon = c("Carcharodon carcharias", "Carcharodon plicatilis", 
+                  "Carcharodon hubbelli", "Carcharodon megalodon", 
+                  "Carcharodon subauriculatus", "Carcharodon hastalis", 
+                  "Carcharodon escheri" ),
+
+  Chelonia = c("Chelonia mydas", "Chelonia agassizii", "Chelonia japonica", 
+               "Chelonia depressa", "Chelonia imbricata", "Chelonia kempii", 
+               "Chelonia midas", "Chelonia bissa", "Chelonia viridis", 
+               "Chelonia nigra"),
+
+  Paralichthys = c("Paralichthys olivaceus", "Paralichthys lethostigma", 
+                   "Paralichthys patagonicus", "Paralichthys woolmani", 
+                   "Paralichthys brasiliensis", "Paralichthys isosceles"),
+
+  Sargassum = c("Sargassum muticum", "Sargassum fusiforme", "Sargassum horneri", 
+                "Sargassum vulgare", "Sargassum natans", "Sargassum cymosum", 
+                "Sargassum fluitans")
+)
+
+# Print the list to view its contents
+print(marine_species)
+
+```
+
+
+* Use `lapply` and `sapply` to compute the number of species in each genus. The output should be a list of the counts for each genus.
+
+```{r}
+speciesl <- lapply(marine_species, length)
+speciesl
+
+speciess <- sapply(marine_species, length)
+speciess
+```
+
+
+* Challenge: Use sapply on each element of the list to return the shorter species name. For example, "Acropora palmata" should return "A. palmata". To answer this question, you will need the following functions
+  * `strsplit`: takes a string or collection of strings and a separator and splits the string or collection of strings using the separator. The returned object is list each of wich contains the elements resulting from the split. Seee exmaple below
+  * `substr`: takes a string, a start position and end position and returns the resulting substring.
+    `substr("Bye", 1, 1)` -> returns `'B'`
+    `substr("Bye", 2, 1)` -> returns `'B'`
+
+```{r}
+sp = c("Chelonia mydas", "Acropora millepora")
+x = strsplit(sp, " ")
+print(x)
+```
+
+```{r}
+substr("Bye", 1, 1)
+```
+
+```{r}
+marine_species <- list(
+  Acropora = c("Acropora palmata", "Acropora millepora", "Acropora digitifera", 
+               "Acropora hyacinthus", "Acropora muricata", "Acropora nasuta", 
+               "Acropora aspera", "Acropora tenuis", "Acropora valida", 
+               "Acropora cervicornis"),
+
+  Carcharodon = c("Carcharodon carcharias", "Carcharodon plicatilis", 
+                  "Carcharodon hubbelli", "Carcharodon megalodon", 
+                  "Carcharodon subauriculatus", "Carcharodon hastalis", 
+                  "Carcharodon escheri" ),
+
+  Chelonia = c("Chelonia mydas", "Chelonia agassizii", "Chelonia japonica", 
+               "Chelonia depressa", "Chelonia imbricata", "Chelonia kempii", 
+               "Chelonia midas", "Chelonia bissa", "Chelonia viridis", 
+               "Chelonia nigra"),
+
+  Paralichthys = c("Paralichthys olivaceus", "Paralichthys lethostigma", 
+                   "Paralichthys patagonicus", "Paralichthys woolmani", 
+                   "Paralichthys brasiliensis", "Paralichthys isosceles"),
+
+  Sargassum = c("Sargassum muticum", "Sargassum fusiforme", "Sargassum horneri", 
+                "Sargassum vulgare")
+)
+```
+
+# Exercise 3: Aggregating Data with `tapply` in R
+
+The dataset stored in the csv file `species_abundance.csv` provided includes three columns:
+
+- `Species`: This column lists the names of various marine species.
+- `Count`: This represents the count of individual organisms observed for each species.
+- `Location`: This details the various observation locations.
+
+* Read the data into a variable called `data` and print the six for entries of the table to see what it loosk like.
+```{r}
+data <- read.csv("species_abundance.csv")
+head(data)
+```
+
+* Use the `tapply` function in R to calculate the total number of  individuals . This involves aggregating the `Count` data for each `Species` and computing their mean values.
+```{r}
+total_individuals <- tapply(data$Count, data$Species, FUN = sum)
+total_individuals
+
+mean_indiv <- tapply(data$Count, data$Species, FUN=mean)
+mean_indiv
+```
+
+* Can you print the total mean number of individuals per Location and per Species?
+```{r}
+perlocation_perspecies <- tapply(data$Count, list(data$Species, data$Location), FUN = mean)
+perlocation_perspecies
+```
+
+  * I.e., this is a matrix where each entry is the average of individuals observed for a species (row) and a location (location)
+
+### Building a Data Transformation Pipeline Using Magrittr Pipes
+
+Streamline oceanographic data processing using the `%>%` operator from the `magrittr` package.
+
+The dataset, available in `oceanic.RDS`, simulates oceanographic measurements with these columns:
+- `Temperature`: Water temperature in degrees Celsius.
+- `Salinity`: Salinity in Practical Salinity Units (PSU).
+- `Depth`: Measurement depth in meters.
+- `Region`: The oceanic region of data collection.
+```{r}
+ocean_data <- readRDS("oceanic.RDS")
+
+```
+
+
+To prepare `ocean_data` for analysis, use the `%>%` operator for these transformations:
+1. Filter Extreme Temperatures: Exclude records with temperatures outside the ocean water's typical range (3C to 33C).
+```{r}
+
+```
+
+2. Standardize Salinity: Adjust salinity levels to a standard scale. Implement a custom function for this conversion.
+
+3. Categorize Depth: Transform continuous depth measurements into categories (`Shallow`, `Intermediate`, `Deep`). Utilize the `cut` function, which requires a vector, boundaries, and labels for categorization. For example:
+
+    ```R
+    cut(c(1,2,...,10), breaks = c(0, 30, 200, Inf), labels = c("Shallow", "Intermediate", "Deep"))
+    ```
+    
+  * This example categorizes depths less than 30 meters as `Shallow`, between 30 and 200 meters as `Intermediate`, and deeper than 200 meters as `Deep`.
+
