@@ -1,0 +1,456 @@
+---
+title: "Body Condition of Mother and Calf Humpback Whales (*Megoptera novaeangiliae*) Over Temporal Scales"
+author: "Lewis Evans, Sophie Paradis, Maya Otsu, and Alyssa Veneri"
+output: pdf_document
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+tinytex::install_tinytex(force = TRUE)
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(forcats)
+```
+
+# Research Questions
+1. How does the mother and calf body condition index vary by year?
+2. How does the mother and calf body condition index vary seasonally?
+
+
+# Data Wrangling
+Below is the code used to optimize and clean the dataset used to answer the research questions.
+## Install packages and organise sheets to be filled
+```{r}
+# template to be filled
+temp<-read.csv("lewis_temp.csv")
+# data from master sheet to be transferred
+data<-read.csv("Lewis_Raw_Sheet.csv")
+# Pulling corrected altitude from master database to analysis data sheet
+nm <- c("Corrected_height_m",	"Pixel_length")
+temp[nm] <- lapply(nm, function(x) data[[x]][match(temp$Filename,data$Filename)])
+View(temp)
+#write new data back to original temp csv file.
+write.csv(temp,"lewis_temp.csv")
+```
+
+## preparing to calculate body volumes for each row, need to clean data first:
+```{r}
+data<-read.csv("Lewis_Raw_Sheet.csv")
+head(data,20)
+dim(data)
+
+#remove rows containg NA value
+data <- data %>% drop_na()
+dim(data)
+
+# Only keep rows containing S_Alt altitude source 
+data<-subset(data, Altitude_Source == 'S_Alt') 
+dim(data)
+
+#Remove any measuremetns that didnt pass grading (N)
+data<-subset(data, Grade_pass != 'N')
+dim(data)
+
+#Check value class and change to numeric
+class(data$Corrected_height_m)
+data$Corrected_height_m <- as.numeric(data$Corrected_height_m)
+class(data$Pixel_length)
+```
+## Calculate Total length of whale and length of 5% intervals 
+```{r}
+# Calculate TL
+data$TL <- data$Corrected_height_m*data$Pixel_length
+
+#check range to see for anomolies
+range(data$TL)
+
+#equation to change 5% intervals from pixel length to absolute length
+data<-data %>%  mutate(across(c("Pixel_Width_5","Pixel_Width_10","Pixel_Width_15","Pixel_Width_20","Pixel_Width_25","Pixel_Width_30","Pixel_Width_35","Pixel_Width_40","Pixel_Width_45","Pixel_Width_50","Pixel_Width_55","Pixel_Width_60","Pixel_Width_65","Pixel_Width_70","Pixel_Width_75","Pixel_Width_80","Pixel_Width_85","Pixel_Width_90","Pixel_Width_95"), function(x) x*data$TL/100))
+View(data)
+```
+
+## isolating 5 % intervals
+```{r}
+colnames(data)[10:28] <- c("Width.5.proc.m","Width.10.proc.m","Width.15.proc.m","Width.20.proc.m","Width.25.proc.m","Width.30.proc.m","Width.35.proc.m","Width.40.proc.m","Width.45.proc.m","Width.50.proc.m","Width.55.proc.m","Width.60.proc.m","Width.65.proc.m","Width.70.proc.m","Width.75.proc.m","Width.80.proc.m","Width.85.proc.m","Width.90.proc.m","Width.95.proc.m")
+```
+
+#Renaming TL and Role.
+```{r}
+data <- data %>% 
+  rename("Total.length.m" = "TL",
+         "Rep.class" = "Role")
+```
+
+## reorganisng/subsetting and reprganisng columns of interest. changename to BM
+```{r}
+BM<-as.data.frame(data[,c("Filename","Total.length.m","Rep.class","Width.5.proc.m","Width.10.proc.m","Width.15.proc.m","Width.20.proc.m","Width.25.proc.m","Width.30.proc.m","Width.35.proc.m","Width.40.proc.m","Width.45.proc.m","Width.50.proc.m","Width.55.proc.m","Width.60.proc.m","Width.65.proc.m","Width.70.proc.m","Width.75.proc.m","Width.80.proc.m","Width.85.proc.m","Width.90.proc.m","Width.95.proc.m")])
+
+#confirming widths are numeric
+class(BM$Width.5.proc.m)
+```
+
+
+## choosing 5% intervals from 5%-85% of the whale.
+```{r}
+HW.ratios<-data.frame(
+  Measurement.site=seq(5,85,5),
+  All.HW.ratio=c(0.89,0.78,0.90,0.97,0.91,0.92,0.93,0.92,0.94,1.00,1.08,1.19,1.34,1.51,1.75,2.03,2.26))
+
+for(i in 1:length(BM[,1])){                                                                         #Runs a loop for every individual in the data frame
+  temp.widths<-BM[i,c(which(colnames(BM)=="Width.5.proc.m"):which(colnames(BM)=="Width.85.proc.m"))]  #Extracts the body width measurements for individual i
+  temp.heights<-temp.widths*HW.ratios$All.HW.ratio                    #...calculate the height of whale i based on the estimated HW ratios 
+  colnames(temp.heights)<-c("Height.5.proc.m","Height.10.proc.m","Height.15.proc.m","Height.20.proc.m","Height.25.proc.m","Height.30.proc.m","Height.35.proc.m","Height.40.proc.m","Height.45.proc.m","Height.50.proc.m","Height.55.proc.m","Height.60.proc.m","Height.65.proc.m","Height.70.proc.m","Height.75.proc.m","Height.80.proc.m","Height.85.proc.m")   #Re-name the column headers for the height measurements
+  ifelse(i==1,temp.output<-temp.heights,temp.output<-rbind(temp.output,temp.heights))                 #Extracts the data into a temporary output data frame called "temp.output"
+}
+BM<-cbind(BM,temp.output)  
+```
+
+## Set width and height at 0 and 100%BL from rostrum to be 0
+```{r}
+BM$Width.0.proc.m<-0
+BM$Height.0.proc.m<-0
+BM$Width.100.proc.m<-0
+BM$Height.100.proc.m<-0
+```
+
+## Calculate the body width and height at 90 and 95%BL from rostrum based on linear interpolation between 85 and 100%BL from rostrum
+```{r}
+BM$Width.90.proc.m<-BM$Width.85.proc.m-(1*(BM$Width.85.proc.m/3))
+BM$Width.95.proc.m<-BM$Width.85.proc.m-(2*(BM$Width.85.proc.m/3))
+BM$Height.90.proc.m<-BM$Height.85.proc.m-(1*(BM$Height.85.proc.m/3))
+BM$Height.95.proc.m<-BM$Height.85.proc.m-(2*(BM$Height.85.proc.m/3))
+```
+
+## Re-order data frame (necessary for the next step)
+```{r}
+BM<-BM[,c(which(colnames(BM)=="Width.0.proc.m"),which(colnames(BM)=="Width.5.proc.m"):which(colnames(BM)=="Width.85.proc.m"),which(colnames(BM)=="Width.90.proc.m"),which(colnames(BM)=="Width.95.proc.m"),which(colnames(BM)=="Width.100.proc.m"),which(colnames(BM)=="Height.0.proc.m"),which(colnames(BM)=="Height.5.proc.m"):which(colnames(BM)=="Height.85.proc.m"),which(colnames(BM)=="Height.90.proc.m"),which(colnames(BM)=="Height.95.proc.m"),which(colnames(BM)=="Height.100.proc.m"),which(colnames(BM)=="Total.length.m"),which(colnames(BM)=="Rep.class"),which(colnames(BM)=="Filename"),which(colnames(BM)=="Year"))] 
+Width.col.start<-which(colnames(BM)=="Width.0.proc.m")        #Extracts the column number of the starting width measurement
+Height.col.start<-which(colnames(BM)=="Height.0.proc.m")      #Extracts the column number of the starting height measurement
+```
+## Calculate the body volume of the whales
+```{r}
+BM$Volume.m3<-NA                            #Creates an empty storage vector for body volume
+for(y in 1:length(BM[,1])){                 #Runs a loop for every individual in the data frame
+  for(k in 1:(length(seq(0,100,5))-1)){     #Runs a loop for every body segment (volume between two measurement sites), including 0 and 100%
+    f.ellipse<-function(x){                   #Formula to calculate the volume of an ellipse        
+      (BM[y,Width.col.start+(k-1)]+((BM[y,(Width.col.start+k)]-BM[y,Width.col.start+(k-1)])*x))/2*(BM[y,Height.col.start+(k-1)]+((BM[y,(Height.col.start+k)]-BM[y,Height.col.start+(k-1)])*x))/2*pi
+    }
+    Volume.temp<-integrate(f.ellipse,lower=0,upper=1)$value*BM$Total.length.m[y]*0.05   #Multiplies the area with the volume of the segment
+    ifelse(k==1,Store1<-Volume.temp,Store1<-c(Store1,Volume.temp))                      #Stores the output from each body segment volume estimate
+  }
+  BM$Volume.m3[y]<-sum(Store1)                                                          #Calculates the body volume from all the body segments for individual i
+}
+```
+
+## check data
+```{r}
+plot(BM$Total.length.m,BM$Volume.m3)
+
+#Check data makes sense/that there arent many outliers
+data$Volume.m3 <- NA
+nm <- c("Volume.m3")
+data[nm] <- lapply(nm, function(x) BM[[x]][match(data$Filename,BM$Filename)])
+View(data)
+plot(data$Total.length.m,data$Volume.m3)
+```
+
+```{r}
+#write the CSV file
+write.csv(data, "Lewis_Raw_Sheet.csv")
+```
+
+# Data Analysis
+Below is the code and plots used to analyze our data with the corresponding statistical analysis.
+```{r}
+###Create regression###
+whales <- read.csv("Lewis_Raw_Sheet.csv")
+model <- lm(Volume.m3 ~ Total.length.m, data = whales)
+model
+whale_plot <- plot(whales$Total.length.m, whales$Volume.m3, main = "Whale Length vs. Volume", 
+     xlab = "Whale Length (m)", ylab = "Whale Body Volume (m^3)")
+summary_result <- summary(model)
+summary_result
+r_squared <- summary_result$r.squared
+r_squared
+```
+
+```{r}
+# Plot with points of different colors based on Region
+colors <- ifelse(whales$Region == "HI", "blue", "black")
+whale_plot <- plot(
+  whales$Total.length.m, whales$Volume.m3,
+  main = "Whale Length vs. Volume",
+  xlab = "Whale Length (m)", ylab = "Whale Body Volume (m^3)",
+  col = colors, pch = 16, cex = 0.5
+)
+whale_plot
+smoothed_data <- lowess(whales$Total.length.m, whales$Volume.m3)
+lines(smoothed_data, col = "red", lwd = 2)
+legend("topleft", legend = c("Hawaii", "Alaska"), col = c("blue", "black"), pch = 16, cex = 1, title = "Region")
+```
+
+```{r}
+###Transform Data###
+whales$log_length <- log(whales$Total.length.m)
+whales$log_volume <- log(whales$Volume.m3)
+log_regression <- lm(log_volume ~ log_length, data = whales)
+plot(whales$log_length, whales$log_volume, main = "Log-Transformed Whale Length vs. Volume", 
+     xlab = "Log(Whale Length (m))", ylab = "Log(Whale Body Volume(m^3))")
+abline(log_regression, col = "red")
+summary_result_log <- summary(log_regression)
+summary_result_log
+r_squared_log <- summary_result_log$r.squared
+r_squared_log
+```
+
+```{r}
+# Plot with points of different colors based on Region
+colors <- ifelse(whales$Region == "HI", "blue", "black")
+whale_plot <- plot(
+  whales$log_length, whales$log_volume,
+  main = "Log-Transformed Whale Length vs. Volume",
+  xlab = "Log(Whale Length (m))", ylab = "Log(Whale Body Volume (m^3))",
+  col = colors, pch = 16, cex = 0.5
+)
+whale_plot
+legend("topleft", legend = c("Hawaii", "Alaska"), col = c("blue", "black"), pch = 16, cex = 1, title = "Region")
+abline(log_regression, col = "red")
+summary_result_log <- summary(log_regression)
+summary_result_log
+r_squared_log <- summary_result_log$r.squared
+r_squared_log
+```
+
+```{r}
+###Calculating residuals###
+residuals_vector <- residuals(log_regression)
+head(residuals_vector)
+residual_variance <- var(residuals_vector)
+head(residual_variance)
+whales$BCI <- residuals_vector
+head(whales)
+```
+
+```{r}
+###Create month column###
+whales <- whales %>%
+  mutate(Date = as.Date(paste(Year, DOY, sep = "-"), format = "%Y-%j"))
+whales <- whales %>%
+  mutate(Month = format(Date, "%m"))
+avg_bv_per_month <- whales %>%
+  group_by(Year, Month, Rep.class) %>%
+  summarise(Avg_BV = mean(Volume.m3))
+print(avg_bv_per_month)
+```
+
+```{r}
+###Create a facet grid###
+whale_grid <- ggplot(whales, aes(x = Rep.class, y = BCI, fill = "Year")) +
+  geom_boxplot() +
+  facet_wrap(~Year, scales = "free_y") +
+  labs(title = "Life stage and residual",
+       x = "Life Stage",
+       y = "BCI") +
+  theme_minimal()
+whale_grid
+```
+
+```{r}
+###Facet grid with month###
+#omit yearling#
+whales_filtered1 <- whales %>%
+  filter(Rep.class != "Yearling")
+ggplot(whales_filtered1, aes(x = Month, y = BCI, fill = Rep.class)) +
+  geom_boxplot() +
+  facet_grid(~Year) +
+  labs(x = "Month", y = "BCI", fill = "Rep.class") +
+  ggtitle("Box Plot Facet Grid for BCI by Month and Class for Each Year")
+```
+
+```{r}
+###Facet grid with month 1,2, and 3###
+whales_subset <- whales %>% filter(Month %in% c("01", "02", "03"))
+whales_filtered <- whales_subset %>%
+  filter(Rep.class != "Yearling")
+ggplot(whales_filtered, aes(x = as.factor(Month), y = BCI, fill = Rep.class)) +
+  geom_boxplot() +
+  facet_grid(~Year) +
+  labs(x = "Month", y = "BCI", fill = "Rep.class") +
+  ggtitle("Box Plot Facet Grid for BCI by Month and Class for Each Year")
+```
+
+```{r}
+###Perform a t-test to compare BCI of calf and mother###
+# Exclude 'yearling' class
+##################whales_filtered <- whales %>%
+whales_filtered <- whales %>%
+  filter(Rep.class != "Yearling")
+
+table(whales_filtered$Rep.class)
+whales_filtered$Rep.class <- fct_collapse(whales_filtered$Rep.class, Mother = c('Mother', 'Mother '))
+table(whales_filtered$Rep.class)
+
+t_test_result <- t.test(BCI ~ Rep.class, data = whales_filtered)
+print(t_test_result)
+```
+
+```{r}
+#T-test for Hawaii
+t_test_hawaii <- t.test(BCI ~ Rep.class, data = whales_filtered[whales_filtered$Region == "HI", ])
+print("T-Test for Hawaii:")
+print(t_test_hawaii)
+```
+
+```{r}
+#T-test for Alaska
+t_test_alaska <- t.test(BCI ~ Rep.class, data = whales_filtered[whales_filtered$Region == "AK", ])
+print("T-Test for Alaska:")
+print(t_test_alaska)
+```
+
+```{r}
+###Creating a time series plot###
+
+##TIME SERIES
+
+##First, find the average BV of calves and mothers per month
+#convert year and DOY to date format
+###make avg per month
+whales <- whales %>%
+  mutate(Date = as.Date(paste(Year, DOY, sep = "-"), format = "%Y-%j"))
+
+# Extract month from the date
+whales <- whales %>%
+  mutate(Month = format(Date, "%m"))
+
+# Group by Year, Month, and class, then calculate the average body volume
+avg_bv_per_month <- whales %>%
+  group_by(Year, Month, Rep.class) %>%
+  summarise(Avg_BV = mean(Volume.m3))
+
+# View the resulting dataset with average body volume per month for each year and Rep.class
+print(avg_bv_per_month)
+
+
+##NEXT, prepare data by excluding yearling class to focus on mothers and calves,
+#then group by year, month and class to calculate avg body volume for each year
+
+# Exclude 'yearling' class
+whales_filtered <- whales %>%
+  filter(Rep.class != "Yearling")
+
+# Group by Year, Month, and Rep.class, then calculate the average BCI
+avg_BCI_per_month <- whales_filtered %>%
+  group_by(Year, Month, Rep.class) %>%
+  summarise(Avg_BCI = mean(BCI))
+
+# Plotting for each year
+for (year in 2019:2022) {
+  # Subset data for the current year
+  year_data <- avg_BCI_per_month %>%
+    filter(Year == year) %>%
+    filter(Rep.class != "Yearling")  # Filter out 'yearling' within each year
+  
+  # Plotting average body volume over months for each Rep.class
+  ggplot(year_data, aes(x = as.numeric(Month), y = Avg_BCI, group = Rep.class, color = Rep.class)) +
+    geom_line() +
+    labs(title = paste("Average Body Volume Over Months for Whales in", year),
+         x = "Month", y = "Average BCI") +
+    scale_x_continuous(breaks = 1:12, labels = month.abb) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+#Doesnt print all years, only 2022. So Next codes will plot each separately
+  
+  # You can save the plot here or use any preferred method to display it
+  # ggsave(filename = paste("Avg_BV_over_months_", year, ".png"), plot = last_plot())
+}
+print(last_plot())
+
+# Convert 'Year' and 'Month' to numeric for plotting
+avg_BCI_per_month <- avg_BCI_per_month %>%
+  mutate(Year = as.numeric(Year),
+         Month = as.numeric(Month))
+
+# Filter data for year 2019
+data_2019 <- avg_BCI_per_month %>%
+  filter(Year == 2019)
+
+# Plotting for 2019
+ggplot(data_2019, aes(x = Month, y = Avg_BCI, group = Rep.class, color = Rep.class)) +
+  geom_line() +
+  labs(title = "Average BCI Over Months for Whales in 2019",
+       x = "Month", y = "Average BCI") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# Filter data for year 2020
+data_2020 <- avg_BCI_per_month %>%
+  filter(Year == 2020)
+
+# Plotting for 2020
+ggplot(data_2020, aes(x = Month, y = Avg_BCI, group = Rep.class, color = Rep.class)) +
+  geom_line() +
+  labs(title = "Average BCI Over Months for Whales in 2020",
+       x = "Month", y = "Average BCI") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# Filter data for year 2021
+data_2021 <- avg_BCI_per_month %>%
+  filter(Year == 2021)
+
+# Plotting for 2021
+ggplot(data_2021, aes(x = Month, y = Avg_BCI, group = Rep.class, color = Rep.class)) +
+  geom_line() +
+  labs(title = "Average BCI Over Months for Whales in 2021",
+       x = "Month", y = "Average BCI") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# Filter data for year 2022
+
+data_2022 <- avg_BCI_per_month %>%
+  filter(Year == 2022)
+
+# Plotting for 2022
+ggplot(data_2022, aes(x = Month, y = Avg_BCI, group = Rep.class, color = Rep.class)) +
+  geom_line() +
+  labs(title = "Average BCI Over Months for Whales in 2019",
+       x = "Month", y = "Average BCI") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+# Filter data for years 2019 to 2022
+data_years <- avg_BCI_per_month %>%
+  filter(Year %in% c(2019, 2020, 2021, 2022))
+
+# Plotting for all years in one panel
+ggplot(data_years, aes(x = Month, y = Avg_BCI, group = Rep.class, color = Rep.class)) +
+  geom_line() +
+  labs(title = "Average  Over BCI for Whales (2019-2022)",
+       x = "Month", y = "Average BCI") +
+  scale_x_continuous(breaks = 1:12, labels = month.abb) +
+  facet_wrap(~Year, scales = "free") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+summary(lm(Avg_BCI~Month*Year, data_years))
+```
+

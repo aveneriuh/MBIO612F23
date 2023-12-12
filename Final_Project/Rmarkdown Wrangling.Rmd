@@ -1,0 +1,142 @@
+#Install packages and organise sheets to be filled
+
+```{r}
+library(tidyr)
+library(dplyr)
+install.packages("rmarkdown")
+# template to be filled
+temp<-read.csv("C:/Users/lewis/OneDrive/Documents/MBIO/lewis_temp.csv")
+# data from master sheet to be transferred
+data<-read.csv("C:/Users/lewis/OneDrive/Documents/MBIO/Lewis_Raw_Sheet.csv")
+# Pulling corrected altitude from master database to analysis data sheet
+nm <- c("Corrected_height_m",	"Pixel_length")
+temp[nm] <- lapply(nm, function(x) data[[x]][match(temp$Filename,data$Filename)])
+View(temp)
+#write new data back to original temp csv file.
+write.csv(temp,"C:/Users/lewis/OneDrive/Documents/MBIO/lewis_temp.csv")
+```
+
+#preparing to calculate body volumes for each row, need to clean data first:
+```{r}
+data<-read.csv("C:/Users/lewis/OneDrive/Documents/MBIO/Lewis_Raw_Sheet.csv")
+head(data,20)
+dim(data)
+
+#remove rows containg NA value
+data <- data %>% drop_na()
+dim(data)
+
+# Only keep rows containing S_Alt altitude source 
+data<-subset(data, Altitude_Source == 'S_Alt') 
+dim(data)
+
+#Remove any measuremetns that didnt pass grading (N)
+data<-subset(data, Grade_pass != 'N')
+dim(data)
+
+#Check value class and change to numeric
+class(data$Corrected_height_m)
+data$Corrected_height_m <- as.numeric(data$Corrected_height_m)
+class(data$Pixel_length)
+```
+#Calculate Total length of whale and length of 5% intervals 
+```{r}
+# Calculate TL
+data$TL <- data$Corrected_height_m*data$Pixel_length
+
+#check range to see for anomolies
+range(data$TL)
+
+#equation to change 5% intervals from pixel length to absolute length
+data<-data %>%  mutate(across(c("Pixel_Width_5","Pixel_Width_10","Pixel_Width_15","Pixel_Width_20","Pixel_Width_25","Pixel_Width_30","Pixel_Width_35","Pixel_Width_40","Pixel_Width_45","Pixel_Width_50","Pixel_Width_55","Pixel_Width_60","Pixel_Width_65","Pixel_Width_70","Pixel_Width_75","Pixel_Width_80","Pixel_Width_85","Pixel_Width_90","Pixel_Width_95"), function(x) x*data$TL/100))
+View(data)
+```
+
+#isolating 5 % intervals
+```{r}
+colnames(data)[10:28] <- c("Width.5.proc.m","Width.10.proc.m","Width.15.proc.m","Width.20.proc.m","Width.25.proc.m","Width.30.proc.m","Width.35.proc.m","Width.40.proc.m","Width.45.proc.m","Width.50.proc.m","Width.55.proc.m","Width.60.proc.m","Width.65.proc.m","Width.70.proc.m","Width.75.proc.m","Width.80.proc.m","Width.85.proc.m","Width.90.proc.m","Width.95.proc.m")
+```
+
+#Renaming TL and Role.
+```{r}
+data <- data %>% 
+  rename("Total.length.m" = "TL",
+         "Rep.class" = "Role")
+```
+#reorganisng/subsetting and reprganisng columns of interest. changename to BM
+```{r}
+BM<-as.data.frame(data[,c("Filename","Total.length.m","Rep.class","Width.5.proc.m","Width.10.proc.m","Width.15.proc.m","Width.20.proc.m","Width.25.proc.m","Width.30.proc.m","Width.35.proc.m","Width.40.proc.m","Width.45.proc.m","Width.50.proc.m","Width.55.proc.m","Width.60.proc.m","Width.65.proc.m","Width.70.proc.m","Width.75.proc.m","Width.80.proc.m","Width.85.proc.m","Width.90.proc.m","Width.95.proc.m")])
+
+#confirming widths are numeric
+class(BM$Width.5.proc.m)
+```
+
+
+#choosing 5% intervals from 5%-85% of the whale.
+```{r}
+HW.ratios<-data.frame(
+  Measurement.site=seq(5,85,5),
+  All.HW.ratio=c(0.89,0.78,0.90,0.97,0.91,0.92,0.93,0.92,0.94,1.00,1.08,1.19,1.34,1.51,1.75,2.03,2.26))
+
+for(i in 1:length(BM[,1])){                                                                         #Runs a loop for every individual in the data frame
+  temp.widths<-BM[i,c(which(colnames(BM)=="Width.5.proc.m"):which(colnames(BM)=="Width.85.proc.m"))]  #Extracts the body width measurements for individual i
+  temp.heights<-temp.widths*HW.ratios$All.HW.ratio                    #...calculate the height of whale i based on the estimated HW ratios 
+  colnames(temp.heights)<-c("Height.5.proc.m","Height.10.proc.m","Height.15.proc.m","Height.20.proc.m","Height.25.proc.m","Height.30.proc.m","Height.35.proc.m","Height.40.proc.m","Height.45.proc.m","Height.50.proc.m","Height.55.proc.m","Height.60.proc.m","Height.65.proc.m","Height.70.proc.m","Height.75.proc.m","Height.80.proc.m","Height.85.proc.m")   #Re-name the column headers for the height measurements
+  ifelse(i==1,temp.output<-temp.heights,temp.output<-rbind(temp.output,temp.heights))                 #Extracts the data into a temporary output data frame called "temp.output"
+}
+BM<-cbind(BM,temp.output)  
+```
+
+#Set width and height at 0 and 100%BL from rostrum to be 0
+```{r}
+BM$Width.0.proc.m<-0
+BM$Height.0.proc.m<-0
+BM$Width.100.proc.m<-0
+BM$Height.100.proc.m<-0
+```
+
+#Calculate the body width and height at 90 and 95%BL from rostrum based on linear interpolation between 85 and 100%BL from rostrum
+```{r}
+BM$Width.90.proc.m<-BM$Width.85.proc.m-(1*(BM$Width.85.proc.m/3))
+BM$Width.95.proc.m<-BM$Width.85.proc.m-(2*(BM$Width.85.proc.m/3))
+BM$Height.90.proc.m<-BM$Height.85.proc.m-(1*(BM$Height.85.proc.m/3))
+BM$Height.95.proc.m<-BM$Height.85.proc.m-(2*(BM$Height.85.proc.m/3))
+```
+
+#Re-order data frame (necessary for the next step)
+```{r}
+BM<-BM[,c(which(colnames(BM)=="Width.0.proc.m"),which(colnames(BM)=="Width.5.proc.m"):which(colnames(BM)=="Width.85.proc.m"),which(colnames(BM)=="Width.90.proc.m"),which(colnames(BM)=="Width.95.proc.m"),which(colnames(BM)=="Width.100.proc.m"),which(colnames(BM)=="Height.0.proc.m"),which(colnames(BM)=="Height.5.proc.m"):which(colnames(BM)=="Height.85.proc.m"),which(colnames(BM)=="Height.90.proc.m"),which(colnames(BM)=="Height.95.proc.m"),which(colnames(BM)=="Height.100.proc.m"),which(colnames(BM)=="Total.length.m"),which(colnames(BM)=="Rep.class"),which(colnames(BM)=="Filename"),which(colnames(BM)=="Year"))] 
+Width.col.start<-which(colnames(BM)=="Width.0.proc.m")        #Extracts the column number of the starting width measurement
+Height.col.start<-which(colnames(BM)=="Height.0.proc.m")      #Extracts the column number of the starting height measurement
+```
+#Calculate the body volume of the whales
+```{r}
+BM$Volume.m3<-NA                            #Creates an empty storage vector for body volume
+for(y in 1:length(BM[,1])){                 #Runs a loop for every individual in the data frame
+  for(k in 1:(length(seq(0,100,5))-1)){     #Runs a loop for every body segment (volume between two measurement sites), including 0 and 100%
+    f.ellipse<-function(x){                   #Formula to calculate the volume of an ellipse        
+      (BM[y,Width.col.start+(k-1)]+((BM[y,(Width.col.start+k)]-BM[y,Width.col.start+(k-1)])*x))/2*(BM[y,Height.col.start+(k-1)]+((BM[y,(Height.col.start+k)]-BM[y,Height.col.start+(k-1)])*x))/2*pi
+    }
+    Volume.temp<-integrate(f.ellipse,lower=0,upper=1)$value*BM$Total.length.m[y]*0.05   #Multiplies the area with the volume of the segment
+    ifelse(k==1,Store1<-Volume.temp,Store1<-c(Store1,Volume.temp))                      #Stores the output from each body segment volume estimate
+  }
+  BM$Volume.m3[y]<-sum(Store1)                                                          #Calculates the body volume from all the body segments for individual i
+}
+```
+
+# check data
+```{r}
+plot(BM$Total.length.m,BM$Volume.m3)
+
+#Check data makes sense/that there arent many outliers
+data$Volume.m3 <- NA
+nm <- c("Volume.m3")
+data[nm] <- lapply(nm, function(x) BM[[x]][match(data$Filename,BM$Filename)])
+View(data)
+plot(data$Total.length.m,data$Volume.m3)
+```
+
+```{r}
+#write the CSV file
+write.csv(data, "C:/Users/lewis/OneDrive/Documents/MBIO/Lewis_Raw_Sheet.csv")
+```
